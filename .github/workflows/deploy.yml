@@ -37,7 +37,7 @@ jobs:
 
           # Step 3.2: Clone the GitHub repository (if not already cloned)
           if [ ! -d 'usgs-earthquake-data-pipeline' ]; then
-            git clone https://github.com/prabhakarBU/usgs-earthquake-data-pipeline.git
+            git clone https://github.com/datasnake-littlecobra/usgs-earthquake-data-pipeline.git
           else
             echo 'Repository already cloned. Pulling latest changes...'
             cd usgs-earthquake-data-pipeline
