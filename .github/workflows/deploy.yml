@@ -1,4 +1,4 @@
-name: Deploy Python Project to Vultr
+name: Deploy USGS Project to Vultr
 on:
   push:
     branches:
@@ -36,20 +36,20 @@ jobs:
           cd /home/dev
 
           # Step 3.2: Clone the GitHub repository (if not already cloned)
-          if [ ! -d 'testing-cassandra-remote' ]; then
+          if [ ! -d 'usgs-earthquake-data-pipeline' ]; then
             git clone https://github.com/prabhakarBU/usgs-earthquake-data-pipeline.git
           else
             echo 'Repository already cloned. Pulling latest changes...'
-            cd testing-cassandra-remote
+            cd usgs-earthquake-data-pipeline
             git pull origin main
             cd ..
           fi
 
           echo "Current working directory is: $(pwd)"
-          cd /home/dev/testing-cassandra-remote
+          cd /home/dev/usgs-earthquake-data-pipeline
           echo "Current working directory after cd is: $(pwd)"
-          chmod +x /home/dev/testing-cassandra-remote/run_script.sh
-          sh /home/dev/testing-cassandra-remote/run_script.sh
-          (crontab -l 2>/dev/null; echo \"0 * * * * /home/dev/testing-cassandra-remote/run_script.sh >> /home/dev/testing-cassandra-remote/logs/main.log 2>&1\") | crontab -          
-          python3 /home/dev/testing-cassandra-remote/test-insert-cassandra.py
+          chmod +x /home/dev/usgs-earthquake-data-pipeline/run_script.sh
+          sh /home/dev/usgs-earthquake-data-pipeline/run_script.sh
+          (crontab -l 2>/dev/null; echo \"0 * * * * /home/dev/usgs-earthquake-data-pipeline/run_script.sh >> /home/dev/usgs-earthquake-data-pipeline/logs/main.log 2>&1\") | crontab -          
+          python3 /home/dev/usgs-earthquake-data-pipeline/usgs-earthquake-data-ingest.py
           "
