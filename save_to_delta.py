@@ -35,9 +35,14 @@ client.token = response["auth"]["client_token"]
 secret_path_v1 = "secret/s3keys"  
 # For KV version 2, use 'data/' in the path
 secret_path_v2 = "secret/data/s3keys"  
-# print(client.read(secret_path))
-# vault_response = client.read(secret_path)
-secret_response = client.secrets.kv.v1.read_secret(path=secret_path_v1)
+# using this path
+secret_path = "s3keys"
+
+# read secret using secret_path_v1
+# print(client.read(secret_path_v1))
+# vault_response = client.read(secret_path_v1)
+
+secret_response = client.secrets.kv.v1.read_secret(path=secret_path, mount_point="secret")
 
 # Print the secret values
 # access_key = vault_response["data"]["data"]["aws_access_key_id"]
