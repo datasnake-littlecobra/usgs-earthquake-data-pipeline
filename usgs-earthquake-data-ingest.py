@@ -6,8 +6,8 @@ import json
 import datetime
 import os
 import logging
-# from save_to_delta import save_to_delta_table
-# from save_to_delta import upload_delta_to_s3
+from save_to_delta import save_to_delta_table
+from save_to_delta import upload_delta_to_s3
 from save_to_cassandra import save_to_cassandra_main
 
 # Configure logging
@@ -226,8 +226,8 @@ def main():
     logging.info("Saving the dataframe to JSON...")
     save_to_json(dataframe, args.output_dir)
     logging.info("Saving the dataframe to local delta lake...")
-    # save_to_delta_table(dataframe, delta_dir, mode="append")
-    # logging.info("Uploading the delta lake to Object Storage...")
+    save_to_delta_table(dataframe, delta_dir, mode="append")
+    logging.info("Uploading the delta lake to Object Storage...")
     # need research on appending vs overwrite
     # z order and other ways to make it efficient
     # upload_delta_to_s3(delta_dir, bucket_name, delta_s3_key)
