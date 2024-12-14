@@ -65,6 +65,8 @@ def extract_year(timestamp):
 
 def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
     """Parse GeoJSON data into a Polars DataFrame."""
+    print('inside parse geojson')
+    print(data)
     features = data.get("features", [])
     if not features:
         print("No earthquake data found in the response.")
@@ -73,11 +75,14 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
     # Extract relevant fields
     rows = []
     for feature in features:
+        print('iterating features array')
         props = feature["properties"]
         geom = feature["geometry"]
         timestamp = props["time"]
         month = extract_month(timestamp)
+        print(month)
         year = extract_year(timestamp)
+        print(year)
         
         rows.append(
             {
@@ -118,7 +123,7 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
                 "magnitude_type": props.get("magType"),
                 "type": props.get("type"),
                 "title": props.get("title"),
-                "geometry": json.dumps(
+                "geometry": geojson.dumps(
                     {"type": geom["type"], "coordinates": geom["coordinates"]}
                 ),
             }
@@ -219,6 +224,7 @@ def main():
     # Fetch, parse, and save data
     logging.info("Calling Fetch Earthquake api...")
     data = fetch_earthquake_data(api_url, args.starttime, args.endtime)
+    print(data)
     logging.info("Parsing geojson dataframe back from api call...")
     dataframe = parse_geojson_to_dataframe(data)
     logging.info("Saving the dataframe to CSV...")
