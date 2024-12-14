@@ -46,6 +46,6 @@ INSERT INTO usgs_earthquake_events (
     'Someplace, CA', 'http://example.com', 'details...', 10, 2.3, 3.1, 'green', 'reviewed',
     0, 120, 'us', 'abcd1234', ',abcd1234,xyz1234', 'us,xyz', 'earthquake', 45, 0.001,
     0.32, 76, 'mb', 'earthquake', 'An example title', '{"type":"Point","coordinates":[-117.12,36.12]}'
-);
+) IF NOT EXISTS;
 
 -- maybe create a materialized view later on

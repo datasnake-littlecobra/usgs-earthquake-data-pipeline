@@ -182,7 +182,7 @@ def main():
         help="Cassandra cluster IPs (comma-separated)",
     )
     parser.add_argument(
-        "--keyspace", type=str, default="earthquakes", help="Cassandra keyspace"
+        "--keyspace", type=str, default="usgs_earthquake_events_keyspace", help="Cassandra keyspace"
     )
     parser.add_argument(
         "--table_name",
@@ -206,6 +206,11 @@ def main():
         help="Timeout between batch inserts (in seconds)",
     )
     args = parser.parse_args()
+    
+    print("args.cluster_ips")
+    print(args.cluster_ips)
+    print("args.keyspace")
+    print(args.keyspace)
 
     # Prepare API URL and directory
     api_url = "https://earthquake.usgs.gov/fdsnws/event/1/query"
@@ -221,12 +226,12 @@ def main():
     logging.info("Saving the dataframe to JSON...")
     save_to_json(dataframe, args.output_dir)
     logging.info("Saving the dataframe to local delta lake...")
-    save_to_delta_table(dataframe, delta_dir, mode="append")
-    logging.info("Uploading the delta lake to Object Storage...")
+    # save_to_delta_table(dataframe, delta_dir, mode="append")
+    # logging.info("Uploading the delta lake to Object Storage...")
     # need research on appending vs overwrite
     # z order and other ways to make it efficient
     # upload_delta_to_s3(delta_dir, bucket_name, delta_s3_key)
-    logging.info("Finished...")
+    logging.info("Finished with Files...")
     logging.info("Going to call Cassandra Connect with:")
     logging.info(args.cluster_ips)
     logging.info(args.keyspace)
