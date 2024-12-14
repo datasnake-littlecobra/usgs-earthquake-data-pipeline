@@ -38,10 +38,11 @@ secret_path_v2 = "secret/data/s3keys"
 # using this path
 secret_path = "s3keys"
 
-# read secret using secret_path_v1
+# read secret using secret_path_v1 with NO default key path set to "secret" by VAULT
 # print(client.read(secret_path_v1))
 # vault_response = client.read(secret_path_v1)
 
+# using v1 kv with default path SET TO = "secret" by VAULT
 secret_response = client.secrets.kv.v1.read_secret(path=secret_path, mount_point="secret")
 
 # Print the secret values

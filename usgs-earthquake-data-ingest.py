@@ -2,11 +2,13 @@ import argparse
 import requests
 import polars as pl
 import geojson
+import json
 import datetime
 import os
 import logging
 from save_to_delta import save_to_delta_table
 from save_to_delta import upload_delta_to_s3
+from save_to_cassandra import save_to_cassandra_main
 
 # Configure logging
 logging.basicConfig(
@@ -47,6 +49,19 @@ def fetch_earthquake_data(api_url: str, start_time: str, end_time: str) -> dict:
         print(f"Error fetching data from API: {e}")
         return {}
 
+# Function to convert timestamp to month_year
+def extract_month(timestamp):
+    # Convert timestamp (milliseconds) to datetime object
+    dt = datetime.datetime.fromtimestamp(timestamp / 1000)
+    # Extract year and month in YYYY-MM format
+    return dt.strftime('%m')
+
+# Function to convert timestamp to month_year
+def extract_year(timestamp):
+    # Convert timestamp (milliseconds) to datetime object
+    dt = datetime.datetime.fromtimestamp(timestamp / 1000)
+    # Extract year and month in YYYY-MM format
+    return dt.strftime('%Y')
 
 def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
     """Parse GeoJSON data into a Polars DataFrame."""
@@ -60,18 +75,52 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
     for feature in features:
         props = feature["properties"]
         geom = feature["geometry"]
+        timestamp = props["time"]
+        month = extract_month(timestamp)
+        year = extract_year(timestamp)
+        
         rows.append(
             {
                 "id": feature["id"],
+                "month": month,
+                "year": year,
                 "magnitude": props.get("mag"),
+                "latitude": geom["coordinates"][1],
+                "longitude": geom["coordinates"][0],
+                "depth": (
+                    geom["coordinates"][2] if len(geom["coordinates"]) > 2 else None
+                ),
+                "eventtime": datetime.datetime.fromtimestamp(props["time"] / 1000),
+                "updated": (
+                    datetime.datetime.fromtimestamp(props["updated"] / 1000)
+                    if props.get("updated")
+                    else None
+                ),
                 "place": props.get("place"),
-                "time": datetime.datetime.fromtimestamp(props["time"] / 1000),
+                "url": props.get("url"),
+                "detail": props.get("detail"),
+                "felt": props.get("felt"),
+                "cdi": props.get("cdi"),
+                "mmi": props.get("mmi"),
+                "alert": props.get("alert"),
+                "status": props.get("status"),
                 "tsunami": props.get("tsunami"),
                 "significance": props.get("sig"),
+                "network": props.get("net"),
+                "code": props.get("code"),
+                "ids": props.get("ids"),
+                "sources": props.get("sources"),
+                "types": props.get("types"),
+                "nst": props.get("nst"),
+                "dmin": props.get("dmin"),
+                "rms": props.get("rms"),
+                "gap": props.get("gap"),
+                "magnitude_type": props.get("magType"),
                 "type": props.get("type"),
-                "longitude": geom["coordinates"][0],
-                "latitude": geom["coordinates"][1],
-                "depth": geom["coordinates"][2],
+                "title": props.get("title"),
+                "geometry": json.dumps(
+                    {"type": geom["type"], "coordinates": geom["coordinates"]}
+                ),
             }
         )
 
@@ -101,6 +150,7 @@ def save_to_json(dataframe: pl.DataFrame, output_dir: str):
     dataframe.write_json(file_path)
     print(f"Data saved to {file_path}")
 
+
 def main():
     logging.info("Starting main...")
     # Set up CLI arguments
@@ -122,6 +172,39 @@ def main():
     parser.add_argument(
         "--output_dir", default="output-files", help="Directory to save the CSV files."
     )
+    parser.add_argument(
+        "--cassandra", action="store_true", help="Enable Cassandra ingestion"
+    )
+    parser.add_argument(
+        "--cluster_ips",
+        type=str,
+        default="127.0.0.1",
+        help="Cassandra cluster IPs (comma-separated)",
+    )
+    parser.add_argument(
+        "--keyspace", type=str, default="earthquakes", help="Cassandra keyspace"
+    )
+    parser.add_argument(
+        "--table_name",
+        type=str,
+        default="earthquake_events",
+        help="Cassandra table name for individual fields",
+    )
+    parser.add_argument(
+        "--table_name_geojson",
+        type=str,
+        default="earthquake_geojson",
+        help="Cassandra table name for GeoJSON data",
+    )
+    parser.add_argument(
+        "--batch_size", type=int, default=100, help="Batch size for Cassandra inserts"
+    )
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=2,
+        help="Timeout between batch inserts (in seconds)",
+    )
     args = parser.parse_args()
 
     # Prepare API URL and directory
@@ -140,10 +223,15 @@ def main():
     logging.info("Saving the dataframe to local delta lake...")
     save_to_delta_table(dataframe, delta_dir, mode="append")
     logging.info("Uploading the delta lake to Object Storage...")
-    upload_delta_to_s3(delta_dir, bucket_name, delta_s3_key)
+    # need research on appending vs overwrite
+    # z order and other ways to make it efficient
+    # upload_delta_to_s3(delta_dir, bucket_name, delta_s3_key)
     logging.info("Finished...")
+    logging.info("Going to call Cassandra Connect with:")
+    logging.info(args.cluster_ips)
+    logging.info(args.keyspace)
+    save_to_cassandra_main(args.cluster_ips, args.keyspace)
 
-    # write_to_cassandra()
 
 if __name__ == "__main__":
     main()
