@@ -19,8 +19,8 @@ logging.basicConfig(
 
 # client = hvac.Client(url="http://127.0.0.1:8200", token="")
 client = hvac.Client(url="http://127.0.0.1:8200")
-print("client.is_authenticated() : ")
-print(client.is_authenticated())
+# print("client.is_authenticated() : ")
+# print(client.is_authenticated())
 
 datasnake_test_role_id = os.environ["DATASNAKE_TEST_ROLE_ID"]
 datasnake_test_secret_id = os.environ["DATASNAKE_TEST_SECRET_ID"]

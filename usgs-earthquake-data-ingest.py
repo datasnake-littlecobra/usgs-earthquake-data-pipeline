@@ -6,8 +6,8 @@ import json
 import datetime
 import os
 import logging
-from save_to_delta import save_to_delta_table
-from save_to_delta import upload_delta_to_s3
+# from save_to_delta import save_to_delta_table
+# from save_to_delta import upload_delta_to_s3
 from save_to_cassandra import save_to_cassandra_main
 
 # Configure logging
