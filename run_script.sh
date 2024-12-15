@@ -74,7 +74,9 @@ fi
 CASSANDRA_HOST="127.0.0.1"
 USERNAME="cassandra"
 PASSWORD="cassandra"
-CQL_FILE="/home/dev/testing-cassandra-remote/db-script.cql"
+PROJECT_NAME="usgs-earthquake-data-pipeline"
+CQL_FILE="/home/dev/${PROJECT_NAME}/db-script.cql"
+echo $CQL_FILE
 cqlsh $CASSANDRA_HOST -u $USERNAME -p $PASSWORD -f $CQL_FILE
 
 
