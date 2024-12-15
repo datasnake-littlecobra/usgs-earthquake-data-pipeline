@@ -41,34 +41,34 @@ usgs_earthquake_events_schema = {
     "id": pl.Utf8,  # Unique earthquake ID, assumed to always exist
     "month": pl.Int32,  # Extracted month, integer type
     "year": pl.Int32,  # Extracted year, integer type
-    "magnitude": pl.Nullable(pl.Float64),  # Magnitude can be null
-    "latitude": pl.Nullable(pl.Float64),  # Latitude of the event
-    "longitude": pl.Nullable(pl.Float64),  # Longitude of the event
-    "depth": pl.Nullable(pl.Float64),  # Depth of the event, can be null
+    "magnitude": pl.Float64,  # Magnitude can be null
+    "latitude": (pl.Float64),  # Latitude of the event
+    "longitude": (pl.Float64),  # Longitude of the event
+    "depth": (pl.Float64),  # Depth of the event, can be null
     "eventtime": pl.Datetime,  # Event timestamp, assumed to always exist
-    "updated": pl.Nullable(pl.Datetime),  # Last updated timestamp, nullable
-    "place": pl.Nullable(pl.Utf8),  # Place description, can be null
-    "url": pl.Nullable(pl.Utf8),  # URL to the event details, nullable
-    "detail": pl.Nullable(pl.Utf8),  # Additional detail URL, nullable
-    "felt": pl.Nullable(pl.Int32),  # Number of reports, nullable
-    "cdi": pl.Nullable(pl.Float64),  # Community Internet Intensity, nullable
-    "mmi": pl.Nullable(pl.Float64),  # Modified Mercalli Intensity, nullable
-    "alert": pl.Nullable(pl.Utf8),  # Alert level, can be null
-    "status": pl.Nullable(pl.Utf8),  # Event status, can be null
-    "tsunami": pl.Nullable(pl.Int32),  # Tsunami flag, nullable
-    "significance": pl.Nullable(pl.Int32),  # Significance score, nullable
-    "network": pl.Nullable(pl.Utf8),  # Contributing network, nullable
-    "code": pl.Nullable(pl.Utf8),  # Network code, nullable
-    "ids": pl.Nullable(pl.Utf8),  # Event IDs, nullable
-    "sources": pl.Nullable(pl.Utf8),  # Data sources, nullable
-    "types": pl.Nullable(pl.Utf8),  # Event types, nullable
-    "nst": pl.Nullable(pl.Int32),  # Number of stations, nullable
-    "dmin": pl.Nullable(pl.Float64),  # Minimum distance to earthquake, nullable
-    "rms": pl.Nullable(pl.Float64),  # Root mean square residual, nullable
-    "gap": pl.Nullable(pl.Float64),  # Gap between stations, nullable
-    "magnitude_type": pl.Nullable(pl.Utf8),  # Magnitude type, nullable
-    "type": pl.Nullable(pl.Utf8),  # General type of event, nullable
-    "title": pl.Nullable(pl.Utf8),  # Event title, nullable
+    "updated": (pl.Datetime),  # Last updated timestamp, nullable
+    "place": (pl.Utf8),  # Place description, can be null
+    "url": (pl.Utf8),  # URL to the event details, nullable
+    "detail": (pl.Utf8),  # Additional detail URL, nullable
+    "felt": (pl.Int32),  # Number of reports, nullable
+    "cdi": (pl.Float64),  # Community Internet Intensity, nullable
+    "mmi": (pl.Float64),  # Modified Mercalli Intensity, nullable
+    "alert": (pl.Utf8),  # Alert level, can be null
+    "status": (pl.Utf8),  # Event status, can be null
+    "tsunami": (pl.Int32),  # Tsunami flag, nullable
+    "significance": (pl.Int32),  # Significance score, nullable
+    "network": (pl.Utf8),  # Contributing network, nullable
+    "code": (pl.Utf8),  # Network code, nullable
+    "ids": (pl.Utf8),  # Event IDs, nullable
+    "sources": (pl.Utf8),  # Data sources, nullable
+    "types": (pl.Utf8),  # Event types, nullable
+    "nst": (pl.Int32),  # Number of stations, nullable
+    "dmin": (pl.Float64),  # Minimum distance to earthquake, nullable
+    "rms": (pl.Float64),  # Root mean square residual, nullable
+    "gap": (pl.Float64),  # Gap between stations, nullable
+    "magnitude_type": (pl.Utf8),  # Magnitude type, nullable
+    "type": (pl.Utf8),  # General type of event, nullable
+    "title": (pl.Utf8),  # Event title, nullable
     "geometry": pl.Utf8,  # Geometry JSON as string, assumed to always exist
 }
 
