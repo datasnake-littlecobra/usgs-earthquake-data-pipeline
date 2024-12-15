@@ -57,7 +57,7 @@ def batch_insert_cassandra(session, table_name, dataframe, batch_size=100, timeo
         id, month, year, magnitude, latitude, longitude, depth, eventtime, updated, place, url, detail,
         felt, cdi, mmi, alert, status, tsunami, significance, network, code, ids, sources,
         types, nst, dmin, rms, gap, magnitude_type, type, title, geometry
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     prepared = session.prepare(insert_query)
     batch = session.new_batch_statement()
