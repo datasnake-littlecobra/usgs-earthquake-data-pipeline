@@ -66,7 +66,7 @@ def batch_insert_cassandra(session, table_name, dataframe, batch_size=100, timeo
     batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
 
 
-    for idx, row in enumerate(dataframe.iterrows(named=True)):
+    for idx, row in enumerate(dataframe.iter_rows(named=True)):
         batch.add(
             prepared,
             (
