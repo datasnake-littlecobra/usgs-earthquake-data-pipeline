@@ -115,22 +115,23 @@ def batch_insert_cassandra(session, table_name, dataframe, batch_size=100, timeo
         session.execute(batch)
         print("Inserted remaining rows.")
 
-    # def batch_insert_geojson(session, table_name, dataframe, batch_size=100, timeout=2):
-    """Insert GeoJSON data into Cassandra in batches."""
-    insert_query = f"INSERT INTO {table_name} (id, geojson) VALUES (?, ?)"
-    prepared = session.prepare(insert_query)
-    batch = session.new_batch_statement()
 
-    for idx, row in enumerate(dataframe.iter_rows(named=True)):
-        geojson_data = row["geojson"]
-        batch.add(prepared, (row["id"], geojson_data))
+# def batch_insert_geojson(session, table_name, dataframe, batch_size=100, timeout=2):
+#     """Insert GeoJSON data into Cassandra in batches."""
+#     insert_query = f"INSERT INTO {table_name} (id, geojson) VALUES (?, ?)"
+#     prepared = session.prepare(insert_query)
+#     batch = session.new_batch_statement()
 
-        if (idx + 1) % batch_size == 0:
-            session.execute(batch)
-            print(f"Inserted {idx + 1} GeoJSON rows...")
-            batch.clear()
-            time.sleep(timeout)
+#     for idx, row in enumerate(dataframe.iter_rows(named=True)):
+#         geojson_data = row["geojson"]
+#         batch.add(prepared, (row["id"], geojson_data))
 
-    if batch:
-        session.execute(batch)
-        print("Inserted remaining GeoJSON rows.")
+#         if (idx + 1) % batch_size == 0:
+#             session.execute(batch)
+#             print(f"Inserted {idx + 1} GeoJSON rows...")
+#             batch.clear()
+#             time.sleep(timeout)
+
+#     if batch:
+#         session.execute(batch)
+#         print("Inserted remaining GeoJSON rows.")
