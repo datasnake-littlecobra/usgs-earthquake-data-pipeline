@@ -104,7 +104,7 @@ def extract_year(timestamp):
 def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
     """Parse GeoJSON data into a Polars DataFrame."""
     print("inside parse geojson")
-    print(data)
+    # print(data)
     features = data.get("features", [])
     if not features:
         print("No earthquake data found in the response.")
@@ -268,6 +268,8 @@ def main():
     print(data)
     logging.info("Parsing geojson dataframe back from api call...")
     dataframe = parse_geojson_to_dataframe(data)
+    print("--- dataframe.count() ---")
+    print(dataframe.count())
     logging.info("Saving the dataframe to CSV...")
     save_to_csv(dataframe, args.output_dir)
     logging.info("Saving the dataframe to JSON...")

@@ -2,6 +2,8 @@ import geojson
 import time
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
+from cassandra.query import BatchStatement
+from cassandra import ConsistencyLevel
 import logging
 
 
@@ -60,7 +62,9 @@ def batch_insert_cassandra(session, table_name, dataframe, batch_size=100, timeo
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     prepared = session.prepare(insert_query)
-    batch = session.new_batch_statement()
+    # batch = session.new_batch_statement()
+    batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
+
 
     for idx, row in enumerate(dataframe.iterrows(named=True)):
         batch.add(
