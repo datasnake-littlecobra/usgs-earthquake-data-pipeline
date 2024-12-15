@@ -37,6 +37,41 @@ project_name = "usgs"
 bucket_name = "usgs-bucket"
 delta_s3_key = f"{project_name}/usgs_delta_lake"
 
+usgs_earthquake_events_schema = {
+    "id": pl.Utf8,  # Unique earthquake ID, assumed to always exist
+    "month": pl.Int32,  # Extracted month, integer type
+    "year": pl.Int32,  # Extracted year, integer type
+    "magnitude": pl.Nullable(pl.Float64),  # Magnitude can be null
+    "latitude": pl.Nullable(pl.Float64),  # Latitude of the event
+    "longitude": pl.Nullable(pl.Float64),  # Longitude of the event
+    "depth": pl.Nullable(pl.Float64),  # Depth of the event, can be null
+    "eventtime": pl.Datetime,  # Event timestamp, assumed to always exist
+    "updated": pl.Nullable(pl.Datetime),  # Last updated timestamp, nullable
+    "place": pl.Nullable(pl.Utf8),  # Place description, can be null
+    "url": pl.Nullable(pl.Utf8),  # URL to the event details, nullable
+    "detail": pl.Nullable(pl.Utf8),  # Additional detail URL, nullable
+    "felt": pl.Nullable(pl.Int32),  # Number of reports, nullable
+    "cdi": pl.Nullable(pl.Float64),  # Community Internet Intensity, nullable
+    "mmi": pl.Nullable(pl.Float64),  # Modified Mercalli Intensity, nullable
+    "alert": pl.Nullable(pl.Utf8),  # Alert level, can be null
+    "status": pl.Nullable(pl.Utf8),  # Event status, can be null
+    "tsunami": pl.Nullable(pl.Int32),  # Tsunami flag, nullable
+    "significance": pl.Nullable(pl.Int32),  # Significance score, nullable
+    "network": pl.Nullable(pl.Utf8),  # Contributing network, nullable
+    "code": pl.Nullable(pl.Utf8),  # Network code, nullable
+    "ids": pl.Nullable(pl.Utf8),  # Event IDs, nullable
+    "sources": pl.Nullable(pl.Utf8),  # Data sources, nullable
+    "types": pl.Nullable(pl.Utf8),  # Event types, nullable
+    "nst": pl.Nullable(pl.Int32),  # Number of stations, nullable
+    "dmin": pl.Nullable(pl.Float64),  # Minimum distance to earthquake, nullable
+    "rms": pl.Nullable(pl.Float64),  # Root mean square residual, nullable
+    "gap": pl.Nullable(pl.Float64),  # Gap between stations, nullable
+    "magnitude_type": pl.Nullable(pl.Utf8),  # Magnitude type, nullable
+    "type": pl.Nullable(pl.Utf8),  # General type of event, nullable
+    "title": pl.Nullable(pl.Utf8),  # Event title, nullable
+    "geometry": pl.Utf8,  # Geometry JSON as string, assumed to always exist
+}
+
 
 def fetch_earthquake_data(api_url: str, start_time: str, end_time: str) -> dict:
     """Fetch earthquake data from the USGS API."""
@@ -49,23 +84,26 @@ def fetch_earthquake_data(api_url: str, start_time: str, end_time: str) -> dict:
         print(f"Error fetching data from API: {e}")
         return {}
 
+
 # Function to convert timestamp to month_year
 def extract_month(timestamp):
     # Convert timestamp (milliseconds) to datetime object
     dt = datetime.datetime.fromtimestamp(timestamp / 1000)
     # Extract year and month in YYYY-MM format
-    return dt.strftime('%m')
+    return dt.strftime("%m")
+
 
 # Function to convert timestamp to month_year
 def extract_year(timestamp):
     # Convert timestamp (milliseconds) to datetime object
     dt = datetime.datetime.fromtimestamp(timestamp / 1000)
     # Extract year and month in YYYY-MM format
-    return dt.strftime('%Y')
+    return dt.strftime("%Y")
+
 
 def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
     """Parse GeoJSON data into a Polars DataFrame."""
-    print('inside parse geojson')
+    print("inside parse geojson")
     print(data)
     features = data.get("features", [])
     if not features:
@@ -75,7 +113,7 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
     # Extract relevant fields
     rows = []
     for feature in features:
-        print('iterating features array')
+        print("iterating features array")
         props = feature["properties"]
         geom = feature["geometry"]
         timestamp = props["time"]
@@ -83,7 +121,7 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
         print(month)
         year = extract_year(timestamp)
         print(year)
-        
+
         rows.append(
             {
                 "id": feature["id"],
@@ -129,7 +167,7 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
             }
         )
 
-    return pl.DataFrame(rows)
+    return pl.DataFrame(rows, schema=usgs_earthquake_events_schema)
 
 
 def save_to_csv(dataframe: pl.DataFrame, output_dir: str):
@@ -187,7 +225,10 @@ def main():
         help="Cassandra cluster IPs (comma-separated)",
     )
     parser.add_argument(
-        "--keyspace", type=str, default="usgs_earthquake_events_keyspace", help="Cassandra keyspace"
+        "--keyspace",
+        type=str,
+        default="usgs_earthquake_events_keyspace",
+        help="Cassandra keyspace",
     )
     parser.add_argument(
         "--table_name",
@@ -211,7 +252,7 @@ def main():
         help="Timeout between batch inserts (in seconds)",
     )
     args = parser.parse_args()
-    
+
     print("args.cluster_ips")
     print(args.cluster_ips)
     print("args.keyspace")
