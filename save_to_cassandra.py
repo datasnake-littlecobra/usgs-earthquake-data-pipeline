@@ -5,11 +5,14 @@ from cassandra.auth import PlainTextAuthProvider
 import logging
 
 
-def save_to_cassandra_main(cluster_ips, keyspace):
+def save_to_cassandra_main(
+    cluster_ips, keyspace, table_name, dataframe, batch_size, timeout
+):
     logging.info("Inside Cassandra Connect call:")
     logging.info(cluster_ips.split(","))
     logging.info(keyspace)
     session = connect_cassandra(cluster_ips.split(","), keyspace)
+    batch_insert_cassandra(session, table_name, dataframe, batch_size, timeout)
 
 
 def convert_to_geojson(row):
@@ -94,7 +97,7 @@ def batch_insert_cassandra(session, table_name, dataframe, batch_size=100, timeo
                 row["magnitude_type"],
                 row["type"],
                 row["title"],
-                row["geometry"]
+                row["geometry"],
             ),
         )
 
@@ -108,9 +111,7 @@ def batch_insert_cassandra(session, table_name, dataframe, batch_size=100, timeo
         session.execute(batch)
         print("Inserted remaining rows.")
 
-
-
-# def batch_insert_geojson(session, table_name, dataframe, batch_size=100, timeout=2):
+    # def batch_insert_geojson(session, table_name, dataframe, batch_size=100, timeout=2):
     """Insert GeoJSON data into Cassandra in batches."""
     insert_query = f"INSERT INTO {table_name} (id, geojson) VALUES (?, ?)"
     prepared = session.prepare(insert_query)

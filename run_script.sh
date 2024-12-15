@@ -71,11 +71,11 @@ if ! python3 -c "import packaging" &>/dev/null; then
     pip3 install packaging
 fi
 
-# CASSANDRA_HOST="127.0.0.1"
-# USERNAME="cassandra"
-# PASSWORD="cassandra"
-# CQL_FILE="/home/dev/testing-cassandra-remote/db-script.cql"
-# cqlsh $CASSANDRA_HOST -u $USERNAME -p $PASSWORD -f $CQL_FILE
+CASSANDRA_HOST="127.0.0.1"
+USERNAME="cassandra"
+PASSWORD="cassandra"
+CQL_FILE="/home/dev/testing-cassandra-remote/db-script.cql"
+cqlsh $CASSANDRA_HOST -u $USERNAME -p $PASSWORD -f $CQL_FILE
 
 
 # Step 3.7: S3 Bucket Creation (Dynamic)

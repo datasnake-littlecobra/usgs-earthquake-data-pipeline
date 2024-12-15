@@ -113,14 +113,14 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
     # Extract relevant fields
     rows = []
     for feature in features:
-        print("iterating features array")
+        # print("iterating features array")
         props = feature["properties"]
         geom = feature["geometry"]
         timestamp = props["time"]
         month = extract_month(timestamp)
-        print(month)
+        # print(month)
         year = extract_year(timestamp)
-        print(year)
+        # print(year)
 
         rows.append(
             {
@@ -233,7 +233,7 @@ def main():
     parser.add_argument(
         "--table_name",
         type=str,
-        default="earthquake_events",
+        default="usgs_earthquake_events",
         help="Cassandra table name for individual fields",
     )
     parser.add_argument(
@@ -253,10 +253,10 @@ def main():
     )
     args = parser.parse_args()
 
-    print("args.cluster_ips")
-    print(args.cluster_ips)
-    print("args.keyspace")
-    print(args.keyspace)
+    # print("args.cluster_ips")
+    # print(args.cluster_ips)
+    # print("args.keyspace")
+    # print(args.keyspace)
 
     # Prepare API URL and directory
     api_url = "https://earthquake.usgs.gov/fdsnws/event/1/query"
@@ -282,7 +282,7 @@ def main():
     logging.info("Going to call Cassandra Connect with:")
     logging.info(args.cluster_ips)
     logging.info(args.keyspace)
-    save_to_cassandra_main(args.cluster_ips, args.keyspace)
+    save_to_cassandra_main(args.cluster_ips, args.keyspace, args.table_name, dataframe, args.batch_size, args.timeout)
 
 
 if __name__ == "__main__":
