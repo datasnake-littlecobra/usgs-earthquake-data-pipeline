@@ -134,47 +134,70 @@ def extract_data_for_past_years(api_url: str, years: int = 10):
 #         print(f"Error fetching data from API: {e}")
 #         return {}
 
-def fetch_data_by_year_range(api_url: str, start_year: int, end_year: int) -> None:
-    """Fetch earthquake data for a range of years, month by month."""
-    print("fetch_data_by_year_range: Fetch earthquake data for a range of years, month by month")
-    start_date = datetime(year=start_year, month=1, day=1)
-    end_date = datetime(year=end_year, month=12, day=31)
-    all_data = []  # To store fetched data
-    
-    print("start date : current_start_date")
-    print(start_date)
-    
-    print("end date:")
-    print(end_date)
-
-    current_start_date = start_date
-    # current_end_date = current_start_date + timedelta(days=30)  # Fetch in monthly increments
-
-    while current_start_date < end_date:
-        start_time_iso = current_start_date.strftime("%Y-%m-%d")
-        current_end_date = current_start_date + relativedelta(months=1)
-        print("relative current end date:")
-        print(current_end_date)
-        current_end_date = min(current_end_date, end_date) 
-        print("min current end date:")
-        print(current_end_date)
+def fetch_data_by_year_range(api_url: str, start_year: int, end_year: int, output_dir: str, cluster_ips: str, keyspace: str, table_name: str, batch_size: str, timeout: str) -> None:
+    try:
+        """Fetch earthquake data for a range of years, month by month."""
+        logging.info("fetch_data_by_year_range: Fetch earthquake data for a range of years, month by month")
+        print("fetch_data_by_year_range: Fetch earthquake data for a range of years, month by month")
+        start_date = datetime(year=start_year, month=1, day=1)
+        end_date = datetime(year=end_year, month=12, day=31)
+        # all_data = []  # To store fetched data
         
-        end_time_iso = current_end_date.strftime("%Y-%m-%d")
+        logging.info(f"Start date: {start_date}, End date: {end_date}")
 
-        print(f"Fetching data from {start_time_iso} to {end_time_iso}...")
-        data = fetch_earthquake_data(api_url, start_time_iso, end_time_iso)
-        # Check if data is valid and add to all_data
-        if data and "features" in data:
-            all_data.extend(data["features"])
+        current_start_date = start_date
+        # current_end_date = current_start_date + timedelta(days=30)  # Fetch in monthly increments
 
-        # Process the data (e.g., save or analyze it)
-        print(f"Fetched {len(data.get('features', []))} records.")
+        while current_start_date < end_date:
+            start_time_iso = current_start_date.strftime("%Y-%m-%d")
+            current_end_date = current_start_date + relativedelta(months=1)
+            logging.info("relative current end date:")
+            logging.info(current_end_date)
+            current_end_date = min(current_end_date, end_date) 
+            logging.info("min current end date:")
+            logging.info(current_end_date)
+            
+            end_time_iso = current_end_date.strftime("%Y-%m-%d")
 
-        # Move to the next time range
-        current_start_date = current_end_date
-        # current_end_date = min(current_start_date + timedelta(days=30), end_date)
-        
-    return all_data
+            logging.info(f"Fetching data from {start_time_iso} to {end_time_iso}")
+            data = fetch_earthquake_data(api_url, start_time_iso, end_time_iso)
+            # Check if data is valid and add to all_data
+            if data and "features" in data:
+                # all_data.extend(data["features"])
+                dataframe = parse_geojson_to_dataframe(data)
+                print("--- dataframe.count() ---")
+                print(dataframe.count())                
+                # Process the data (e.g., save or analyze it)
+                logging.info(f"Fetched {len(data.get('features', []))} records.")
+                logging.info("Parsing geojson dataframe back from api call...")
+                logging.info("Saving the dataframe to CSV...")
+                save_to_csv(dataframe, output_dir)
+                logging.info("Saving the dataframe to JSON...")
+                save_to_json(dataframe, output_dir)
+                logging.info("Saving the dataframe to local delta lake...")
+                save_to_delta_table(dataframe, delta_dir, mode="append")
+                logging.info("Uploading the delta lake to Object Storage...")
+                # need research on appending vs overwrite
+                # z order and other ways to make it efficient
+                # upload_delta_to_s3(delta_dir, bucket_name, delta_s3_key)
+                logging.info("Finished with Files...")
+                logging.info("Going to call Cassandra Connect with:")
+                logging.info(cluster_ips)
+                logging.info(keyspace)
+                save_to_cassandra_main(cluster_ips, keyspace, table_name, dataframe, batch_size, timeout)
+            if not data or "features" not in data:
+                logging.warning(f"No data fetched for {start_time_iso} to {end_time_iso}")
+                continue
+
+            
+            
+            # Move to the next time range
+            current_start_date = current_end_date
+            # current_end_date = min(current_start_date + timedelta(days=30), end_date)
+            
+    # return all_data
+    except Exception as e:
+        logging.error(f"Error fetching data for {start_time_iso} to {end_time_iso}: {e}")
 
 # Function to convert timestamp to month_year
 def extract_month(timestamp):
@@ -362,27 +385,29 @@ def main():
     # data = extract_data_for_past_years(API_URL, years=years_to_fetch)
     # print(f"Total events fetched: {len(data)}")
     
-    data = fetch_data_by_year_range(API_URL, start_year=2010, end_year=2024)
+    data = fetch_data_by_year_range(API_URL, start_year=2010, end_year=2024, output_dir= args.output_dir, cluster_ips=args.cluster_ips, keyspace=args.keyspace, table_name=args.table_name, batch_size=args.batch_size, timeout=args.timeout)
     
-    logging.info("Parsing geojson dataframe back from api call...")
-    dataframe = parse_geojson_to_dataframe(data)
-    print("--- dataframe.count() ---")
-    print(dataframe.count())
-    logging.info("Saving the dataframe to CSV...")
-    save_to_csv(dataframe, args.output_dir)
-    logging.info("Saving the dataframe to JSON...")
-    save_to_json(dataframe, args.output_dir)
-    logging.info("Saving the dataframe to local delta lake...")
-    save_to_delta_table(dataframe, delta_dir, mode="append")
-    logging.info("Uploading the delta lake to Object Storage...")
-    # need research on appending vs overwrite
-    # z order and other ways to make it efficient
-    # upload_delta_to_s3(delta_dir, bucket_name, delta_s3_key)
-    logging.info("Finished with Files...")
-    logging.info("Going to call Cassandra Connect with:")
-    logging.info(args.cluster_ips)
-    logging.info(args.keyspace)
-    save_to_cassandra_main(args.cluster_ips, args.keyspace, args.table_name, dataframe, args.batch_size, args.timeout)
+    # logging.info("Parsing geojson dataframe back from api call...")
+    # dataframe = parse_geojson_to_dataframe(data)
+    # print("--- dataframe.count() ---")
+    # print(dataframe.count())
+    # logging.info("Saving the dataframe to CSV...")
+    # save_to_csv(dataframe, args.output_dir)
+    # logging.info("Saving the dataframe to JSON...")
+    # save_to_json(dataframe, args.output_dir)
+    # logging.info("Saving the dataframe to local delta lake...")
+    # save_to_delta_table(dataframe, delta_dir, mode="append")
+    # logging.info("Uploading the delta lake to Object Storage...")
+    
+    # # need research on appending vs overwrite
+    # # z order and other ways to make it efficient
+    # # upload_delta_to_s3(delta_dir, bucket_name, delta_s3_key)
+    
+    # logging.info("Finished with Files...")
+    # logging.info("Going to call Cassandra Connect with:")
+    # logging.info(args.cluster_ips)
+    # logging.info(args.keyspace)
+    # save_to_cassandra_main(args.cluster_ips, args.keyspace, args.table_name, dataframe, args.batch_size, args.timeout)
 
 
 if __name__ == "__main__":
