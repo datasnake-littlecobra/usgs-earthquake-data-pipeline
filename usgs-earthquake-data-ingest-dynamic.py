@@ -75,7 +75,7 @@ usgs_earthquake_events_schema = {
 }
 
 
-def fetch_earthquake_data(API_URL: str, start_time: str, end_time: str) -> dict:
+def fetch_earthquake_data_time(API_URL: str, start_time: str, end_time: str) -> dict:
     """Fetch earthquake data from the USGS API."""
     try:
         params = {"format": "geojson", "starttime": start_time, "endtime": end_time}
@@ -84,13 +84,37 @@ def fetch_earthquake_data(API_URL: str, start_time: str, end_time: str) -> dict:
         response.raise_for_status()  # Raise HTTPError for bad responses
         return response.json()
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching data from API: {e}")
+        logging.info(f"Error fetching data from API: {e}")
+        return {}
+
+def fetch_earthquake_data_time_and_limit(API_URL: str, start_time: str, end_time: str, limit: int) -> dict:
+    """Fetch earthquake data from the USGS API."""
+    try:
+        params = {"format": "geojson", "starttime": start_time, "endtime": end_time, "limit": limit}
+        logging.info(f"url: {API_URL} with starttime: {start_time} and endtime: {end_time}")
+        response = requests.get(API_URL, params=params)
+        response.raise_for_status()  # Raise HTTPError for bad responses
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        logging.info(f"Error fetching data from API: {e}")
+        return {}
+    
+def fetch_earthquake_data_by_limit(API_URL: str, limit: int) -> dict:
+    """Fetch earthquake data from the USGS API."""
+    try:
+        params = {"format": "geojson", "limit": limit}
+        logging.info(f"url: {API_URL} with limit: {limit}")
+        response = requests.get(API_URL, params=params)
+        response.raise_for_status()  # Raise HTTPError for bad responses
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        logging.info(f"Error fetching data from API: {e}")
         return {}
 
 
 def extract_data_for_past_years(api_url: str, years: int = 10):
     """Extract earthquake data for the past specified number of years, month by month."""
-    print("extract_data_for_past_years: Extract earthquake data for the past specified number of years, month by month")
+    logging.info("extract_data_for_past_years: Extract earthquake data for the past specified number of years, month by month")
     # end_date = datetime.datetime.utcnow()  # Current date and time in UTC
     end_date = datetime.now(timezone.utc)  # Current date and time in UTC with timezone awareness
     start_date = end_date - relativedelta(years=years)  # Start date 10 years ago
@@ -111,7 +135,7 @@ def extract_data_for_past_years(api_url: str, years: int = 10):
         start_time_iso = current_start_date.strftime("%Y-%m-%d")
         end_time_iso = current_end_date.strftime("%Y-%m-%d")
         
-        print(f"Fetching data from {start_time_iso} to {end_time_iso}...")
+        logging.info(f"Fetching data from {start_time_iso} to {end_time_iso}...")
         data = fetch_earthquake_data(api_url, start_time_iso, end_time_iso)
         
         # Check if data is valid and add to all_data
@@ -139,13 +163,12 @@ def fetch_data_by_year_range(api_url: str, start_year: int, end_year: int, outpu
     try:
         """Fetch earthquake data for a range of years, month by month."""
         logging.info("fetch_data_by_year_range: Fetch earthquake data for a range of years, month by month")
-        print("fetch_data_by_year_range: Fetch earthquake data for a range of years, month by month")
+        logging.info("fetch_data_by_year_range: Fetch earthquake data for a range of years, month by month")
         start_date = datetime(year=start_year, month=1, day=1)
         end_date = datetime(year=end_year, month=12, day=31)
         # all_data = []  # To store fetched data
         
         logging.info(f"Start date: {start_date}, End date: {end_date}")
-
         current_start_date = start_date
         # current_end_date = current_start_date + timedelta(days=30)  # Fetch in monthly increments
 
@@ -161,13 +184,19 @@ def fetch_data_by_year_range(api_url: str, start_year: int, end_year: int, outpu
             end_time_iso = current_end_date.strftime("%Y-%m-%d")
 
             logging.info(f"Fetching data from {start_time_iso} to {end_time_iso}")
-            data = fetch_earthquake_data(api_url, start_time_iso, end_time_iso)
+            data = fetch_earthquake_data_time(api_url, start_time_iso, end_time_iso)
+            
+            if not data or "features" not in data:
+                logging.warning(f"No data fetched for {start_time_iso} to {end_time_iso}")
+                with open("skipped_months.log", "a") as log_file:
+                    log_file.write(f"{start_time_iso} to {end_time_iso}\n")
+                    
             # Check if data is valid and add to all_data
             if data and "features" in data:
                 # all_data.extend(data["features"])
                 dataframe = parse_geojson_to_dataframe(data)
-                print("--- dataframe.count() ---")
-                print(dataframe.count())                
+                logging.info("--- dataframe.count() ---")
+                logging.info(dataframe.count())                
                 # Process the data (e.g., save or analyze it)
                 logging.info(f"Fetched {len(data.get('features', []))} records.")
                 logging.info("Parsing geojson dataframe back from api call...")
@@ -186,10 +215,6 @@ def fetch_data_by_year_range(api_url: str, start_year: int, end_year: int, outpu
                 logging.info(cluster_ips)
                 logging.info(keyspace)
                 save_to_cassandra_main(cluster_ips, keyspace, table_name, dataframe, batch_size, timeout)
-            if not data or "features" not in data:
-                logging.warning(f"No data fetched for {start_time_iso} to {end_time_iso}")
-                continue
-
             
             
             # Move to the next time range
@@ -199,6 +224,45 @@ def fetch_data_by_year_range(api_url: str, start_year: int, end_year: int, outpu
     # return all_data
     except Exception as e:
         logging.error(f"Error fetching data for {start_time_iso} to {end_time_iso}: {e}")
+
+
+def fetch_data_by_limit_range(api_url: str, start_year: int, end_year: int, limit: int, output_dir: str, cluster_ips: str, keyspace: str, table_name: str, batch_size: str, timeout: str) -> None:
+    try:
+        """Fetch earthquake data for a range of years, month by month."""
+        logging.info(f"fetch_data_by_year_range: Fetch earthquake data for a range of years, month by month")
+        start_date = datetime(year=start_year, month=1, day=1)
+        end_date = datetime(year=end_year, month=12, day=31)
+        logging.info(f"intital start date: {start_date} and end date: {end_date}")
+        start_time_iso = start_date.strftime("%Y-%m-%d")
+        end_time_iso = end_date.strftime("%Y-%m-%d")    
+        logging.info(f"intital start date iso: {start_time_iso} and end date: {end_time_iso}")
+        logging.info(f"limit: {limit}")
+        
+        total_data = 52000
+        total_count_so_far = 0
+        offset = 1
+        
+        while True:
+            
+            logging.info(f"call api with limit: {limit} with offset: {offset}")
+            # data = fetch_earthquake_data_time_and_limit(api_url, start_time_iso, end_time_iso, limit)
+            logging.info(f"Started with total data: {total_data}")
+            
+            offset += limit
+            logging.info(f"use limit: {limit} with updated offset: {offset}")
+            
+            total_data -= offset
+            logging.info(f"Total data left: {total_data}")
+            
+            if total_data < limit:
+                logging.info(f"total data: {total_data} < {limit}, so exit")
+                break
+            
+        logging.info(f"done reading all data for start time: {start_time_iso} to end time: {end_time_iso}")
+        
+    except Exception as e:
+        logging.error(f"Error fetching data for : {e}")
+
 
 # Function to convert timestamp to month_year
 def extract_month(timestamp):
@@ -288,25 +352,25 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
 def save_to_csv(dataframe: pl.DataFrame, output_dir: str):
     """Save the DataFrame to a timestamped CSV file."""
     if dataframe.is_empty():
-        print("No data to save.")
+        logging.info("No data to save.")
         return
 
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     file_path = os.path.join(output_dir, f"earthquake_data_{timestamp}.csv")
     dataframe.write_csv(file_path)
-    print(f"Data saved to {file_path}")
+    logging.into(f"CSV: Data saved to {file_path}")
 
 
 def save_to_json(dataframe: pl.DataFrame, output_dir: str):
     """Save the DataFrame to a timestamped JSON file."""
     if dataframe.is_empty():
-        print("No data to save.")
+        logging.info("No data to save.")
         return
 
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     file_path = os.path.join(output_dir, f"earthquake_data_{timestamp}.json")
     dataframe.write_json(file_path)
-    print(f"Data saved to {file_path}")
+    logging.info(f"JSON: Data saved to {file_path}")
 
 
 def main():
@@ -386,7 +450,8 @@ def main():
     # data = extract_data_for_past_years(API_URL, years=years_to_fetch)
     # print(f"Total events fetched: {len(data)}")
     
-    data = fetch_data_by_year_range(API_URL, start_year=2010, end_year=2024, output_dir= args.output_dir, cluster_ips=args.cluster_ips, keyspace=args.keyspace, table_name=args.table_name, batch_size=args.batch_size, timeout=args.timeout)
+    # data = fetch_data_by_year_range(API_URL, start_year=2010, end_year=2010, output_dir= args.output_dir, cluster_ips=args.cluster_ips, keyspace=args.keyspace, table_name=args.table_name, batch_size=args.batch_size, timeout=args.timeout)
+    data = fetch_data_by_limit_range(API_URL, limit=15000, output_dir= args.output_dir, cluster_ips=args.cluster_ips, keyspace=args.keyspace, table_name=args.table_name, batch_size=args.batch_size, timeout=args.timeout)
     
     # logging.info("Parsing geojson dataframe back from api call...")
     # dataframe = parse_geojson_to_dataframe(data)

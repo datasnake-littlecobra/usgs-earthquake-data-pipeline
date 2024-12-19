@@ -109,13 +109,13 @@ def batch_insert_cassandra(session, table_name, dataframe, batch_size=100, timeo
 
         if (idx + 1) % batch_size == 0:
             session.execute(batch)
-            print(f"Inserted {idx + 1} rows...")
+            logging.info(f"Cassandra: Inserted {idx + 1} rows with month {row["month"]} and year: {row["year"]}")
             batch.clear()
             time.sleep(timeout)
 
     if batch:
         session.execute(batch)
-        print("Inserted remaining rows.")
+        print("Cassandra: Inserted remaining rows.")
 
 
 # def batch_insert_geojson(session, table_name, dataframe, batch_size=100, timeout=2):
