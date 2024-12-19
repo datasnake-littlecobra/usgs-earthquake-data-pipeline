@@ -79,6 +79,7 @@ def fetch_earthquake_data(API_URL: str, start_time: str, end_time: str) -> dict:
     """Fetch earthquake data from the USGS API."""
     try:
         params = {"format": "geojson", "starttime": start_time, "endtime": end_time}
+        logging.info(f"url: {API_URL} with starttime: {start_time} and endtime: {end_time}")
         response = requests.get(API_URL, params=params)
         response.raise_for_status()  # Raise HTTPError for bad responses
         return response.json()
@@ -202,7 +203,7 @@ def fetch_data_by_year_range(api_url: str, start_year: int, end_year: int, outpu
 # Function to convert timestamp to month_year
 def extract_month(timestamp):
     # Convert timestamp (milliseconds) to datetime object
-    dt = datetime.datetime.fromtimestamp(timestamp / 1000)
+    dt = datetime.fromtimestamp(timestamp / 1000)
     # Extract year and month in YYYY-MM format
     return dt.strftime("%m")
 
@@ -210,7 +211,7 @@ def extract_month(timestamp):
 # Function to convert timestamp to month_year
 def extract_year(timestamp):
     # Convert timestamp (milliseconds) to datetime object
-    dt = datetime.datetime.fromtimestamp(timestamp / 1000)
+    dt = datetime.fromtimestamp(timestamp / 1000)
     # Extract year and month in YYYY-MM format
     return dt.strftime("%Y")
 
@@ -247,9 +248,9 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
                 "depth": (
                     geom["coordinates"][2] if len(geom["coordinates"]) > 2 else None
                 ),
-                "eventtime": datetime.datetime.fromtimestamp(props["time"] / 1000),
+                "eventtime": datetime.fromtimestamp(props["time"] / 1000),
                 "updated": (
-                    datetime.datetime.fromtimestamp(props["updated"] / 1000)
+                    datetime.fromtimestamp(props["updated"] / 1000)
                     if props.get("updated")
                     else None
                 ),
@@ -290,7 +291,7 @@ def save_to_csv(dataframe: pl.DataFrame, output_dir: str):
         print("No data to save.")
         return
 
-    timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     file_path = os.path.join(output_dir, f"earthquake_data_{timestamp}.csv")
     dataframe.write_csv(file_path)
     print(f"Data saved to {file_path}")
@@ -302,7 +303,7 @@ def save_to_json(dataframe: pl.DataFrame, output_dir: str):
         print("No data to save.")
         return
 
-    timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     file_path = os.path.join(output_dir, f"earthquake_data_{timestamp}.json")
     dataframe.write_json(file_path)
     print(f"Data saved to {file_path}")
