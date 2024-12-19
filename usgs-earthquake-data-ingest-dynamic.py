@@ -159,7 +159,7 @@ def extract_data_for_past_years(api_url: str, years: int = 10):
 #         print(f"Error fetching data from API: {e}")
 #         return {}
 
-def fetch_data_by_year_range(api_url: str, start_year: int, end_year: int, output_dir: str, cluster_ips: str, keyspace: str, table_name: str, batch_size: str, timeout: str) -> None:
+# def fetch_data_by_year_range(api_url: str, start_year: int, end_year: int, output_dir: str, cluster_ips: str, keyspace: str, table_name: str, batch_size: str, timeout: str) -> None:
     try:
         """Fetch earthquake data for a range of years, month by month."""
         logging.info("fetch_data_by_year_range: Fetch earthquake data for a range of years, month by month")
@@ -228,8 +228,8 @@ def fetch_data_by_year_range(api_url: str, start_year: int, end_year: int, outpu
 
 def fetch_data_by_limit_range(api_url: str, start_year: int, end_year: int, limit: int, output_dir: str, cluster_ips: str, keyspace: str, table_name: str, batch_size: str, timeout: str) -> None:
     try:
-        """Fetch earthquake data for a range of years, month by month."""
-        logging.info(f"fetch_data_by_year_range: Fetch earthquake data for a range of years, month by month")
+        """Fetch earthquake data for a limit, by offset."""
+        logging.info(f"fetch_data_by_limit_range: Fetch earthquake data for a limit, by offset")
         start_date = datetime(year=start_year, month=1, day=1)
         end_date = datetime(year=end_year, month=12, day=31)
         logging.info(f"intital start date: {start_date} and end date: {end_date}")
@@ -442,7 +442,7 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
 
     # Fetch, parse, and save data
-    logging.info("Calling Fetch Earthquake api...")
+    logging.info("Calling Fetch Earthquake api fetch_data_by_limit_range")
     # data = fetch_earthquake_data(API_URL, args.starttime, args.endtime)
     # print(data)
     
