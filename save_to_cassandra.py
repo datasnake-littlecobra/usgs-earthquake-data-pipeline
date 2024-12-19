@@ -63,6 +63,8 @@ def batch_insert_cassandra(session, table_name, dataframe, batch_size=100, timeo
     """
     prepared = session.prepare(insert_query)
     # batch = session.new_batch_statement()
+    
+    # https://docs.datastax.com/en/developer/python-driver/3.29/api/cassandra/query/index.html#cassandra.query.BatchStatement
     batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
 
 

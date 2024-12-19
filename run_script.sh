@@ -23,6 +23,12 @@ if ! python3 -c "import polars" &>/dev/null; then
     pip3 install polars
 fi
 
+# Verify relativedelta installation
+if ! python3 -c "import relativedelta" &>/dev/null; then
+    echo "relativedelta is not installed. Installing it explicitly..."
+    pip3 install relativedelta
+fi
+
 # Verify Polars installation
 if ! python3 -c "import cassandra-driver" &>/dev/null; then
     echo "cassandra-driver is not installed. Installing it explicitly..."
