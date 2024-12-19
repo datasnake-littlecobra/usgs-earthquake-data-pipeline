@@ -87,6 +87,7 @@ def fetch_earthquake_data_time(API_URL: str, start_time: str, end_time: str) -> 
         logging.info(f"Error fetching data from API: {e}")
         return {}
 
+# @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
 def fetch_earthquake_data_time_and_limit_offset(API_URL: str, start_time: str, end_time: str, limit: int, offset: int) -> dict:
     """Fetch earthquake data from the USGS API."""
     try:
@@ -387,7 +388,7 @@ def save_to_csv(dataframe: pl.DataFrame, output_dir: str):
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     file_path = os.path.join(output_dir, f"earthquake_data_{timestamp}.csv")
     dataframe.write_csv(file_path)
-    logging.into(f"CSV: Data saved to {file_path}")
+    logging.info(f"CSV: Data saved to {file_path}")
 
 
 def save_to_json(dataframe: pl.DataFrame, output_dir: str):
