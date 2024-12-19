@@ -265,7 +265,7 @@ def main():
     # Fetch, parse, and save data
     logging.info("Calling Fetch Earthquake api...")
     data = fetch_earthquake_data(api_url, args.starttime, args.endtime)
-    print(data)
+    # print(data)
     logging.info("Parsing geojson dataframe back from api call...")
     dataframe = parse_geojson_to_dataframe(data)
     print("--- dataframe.count() ---")
