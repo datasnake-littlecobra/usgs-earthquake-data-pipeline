@@ -2,7 +2,7 @@
 import os
 from datetime import datetime
 import polars as pl
-from deltalake import DeltaTable
+# from deltalake import DeltaTable, write_deltalake, 
 import boto3
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
@@ -94,11 +94,13 @@ def save_to_delta_table(data: pl.DataFrame, path: str, mode):
     if os.path.exists(file_path):
         if mode == "overwrite":
             print("Overwriting the existing Delta Lake table.")
-            data.write_delta(file_path,mode="overwrite")
+            # data.write_delta(file_path,mode="overwrite")
+            data.write_delta(target=path, delta_write_options={"year", "month"}, mode="append")
             print(f"Data successfully written to {file_path} in {mode} mode.")
         elif mode == "append":
             print("Appending to the existing Delta Lake table.")
-            data.write_delta(file_path,mode="append")
+            # data.write_delta(file_path,mode="append")
+            data.write_delta(target=path, delta_write_options={"year", "month"}, mode="append")
             return
         else:
             raise ValueError("Invalid mode: Choose either 'overwrite' or 'append'.")

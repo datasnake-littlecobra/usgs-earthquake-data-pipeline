@@ -254,17 +254,20 @@ def fetch_data_by_limit_range(api_url: str, start_year: int, end_year: int, limi
             if data and "features" in data:
                 # all_data.extend(data["features"])
                 dataframe = parse_geojson_to_dataframe(data)
+                clustered_dataframe = dataframe.sort(["eventtime"])
+                z_ordered_data = clustered_dataframe.sort(["tsunami", "mag", "sig"])
                 logging.info("--- dataframe.count() ---")
-                logging.info(dataframe.count())                
+                logging.info(z_ordered_data.count())                
                 # Process the data (e.g., save or analyze it)
                 logging.info(f"Fetched {len(data.get('features', []))} records.")
                 logging.info("Parsing geojson dataframe back from api call...")
                 logging.info("Saving the dataframe to CSV...")
                 save_to_csv(dataframe, output_dir)
+                save_to_csv(z_ordered_data, output_dir)
                 logging.info("Saving the dataframe to JSON...")
-                save_to_json(dataframe, output_dir)
+                save_to_json(z_ordered_data, output_dir)
                 logging.info("Saving the dataframe to local delta lake...")
-                save_to_delta_table(dataframe, delta_dir, mode="append")
+                save_to_delta_table(z_ordered_data, delta_dir, mode="append")
                 logging.info("Uploading the delta lake to Object Storage...")
                 # need research on appending vs overwrite
                 # z order and other ways to make it efficient
@@ -273,7 +276,7 @@ def fetch_data_by_limit_range(api_url: str, start_year: int, end_year: int, limi
                 logging.info("Going to call Cassandra Connect with:")
                 logging.info(cluster_ips)
                 logging.info(keyspace)
-                save_to_cassandra_main(cluster_ips, keyspace, table_name, dataframe, batch_size, timeout)
+                save_to_cassandra_main(cluster_ips, keyspace, table_name, z_ordered_data, batch_size, timeout)
     
             offset += limit
             logging.info(f"use limit: {limit} with updated offset: {offset}")
