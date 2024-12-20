@@ -255,7 +255,7 @@ def fetch_data_by_limit_range(api_url: str, start_year: int, end_year: int, limi
                 # all_data.extend(data["features"])
                 dataframe = parse_geojson_to_dataframe(data)
                 clustered_dataframe = dataframe.sort(["eventtime"])
-                z_ordered_data = clustered_dataframe.sort(["tsunami", "mag", "sig"])
+                z_ordered_data = clustered_dataframe.sort(["tsunami", "magnitude", "significance"])
                 logging.info("--- dataframe.count() ---")
                 logging.info(z_ordered_data.count())                
                 # Process the data (e.g., save or analyze it)
