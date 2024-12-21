@@ -97,12 +97,12 @@ def save_to_delta_table(data: pl.DataFrame, path: str, mode):
             if mode == "overwrite":
                 logging.info(f"Overwriting the existing Delta Lake table.")
                 # data.write_delta(file_path,mode="overwrite")
-                data.write_delta(target=path, delta_write_options={"year", "month"}, mode="append")
+                data.write_delta(target=path, delta_write_options={"partitionKeys": ["year", "month"]}, mode="append")
                 logging.info(f"Data successfully written to {file_path} in {mode} mode.")
             elif mode == "append":
                 logging.info(f"Appending to the existing Delta Lake table.")
                 # data.write_delta(file_path,mode="append")
-                data.write_delta(target=path, delta_write_options={"year", "month"}, mode="append")
+                data.write_delta(target=path, delta_write_options={"partitionKeys": ["year", "month"]}, mode="append")
                 return
             else:
                 raise ValueError("Invalid mode: Choose either 'overwrite' or 'append'.")
