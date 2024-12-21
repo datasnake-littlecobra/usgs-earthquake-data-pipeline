@@ -83,30 +83,35 @@ s3_client = session.client(
 
 # Function to save data to Delta Lake format
 def save_to_delta_table(data: pl.DataFrame, path: str, mode):
-    logging.info(f"inside save to delta table")
-    # Ensure the path exists, or create it (you could use pathlib for this)
-    os.makedirs(path, exist_ok=True)
-    
-    # Create a file path within the directory
-    file_path = os.path.join(path, "")
-    logging.info(f"Starting to write into Delta Parquet: {file_path}")
-    logging.info(datetime.now())
-    # Check if the table exists and handle mode appropriately
-    if os.path.exists(file_path):
-        if mode == "overwrite":
-            logging.info(f"Overwriting the existing Delta Lake table.")
-            # data.write_delta(file_path,mode="overwrite")
-            data.write_delta(target=path, delta_write_options={"year", "month"}, mode="append")
-            logging.info(f"Data successfully written to {file_path} in {mode} mode.")
-        elif mode == "append":
-            logging.info(f"Appending to the existing Delta Lake table.")
-            # data.write_delta(file_path,mode="append")
-            data.write_delta(target=path, delta_write_options={"year", "month"}, mode="append")
-            return
+    try:
+        logging.info(f"inside save to delta table")
+        # Ensure the path exists, or create it (you could use pathlib for this)
+        os.makedirs(path, exist_ok=True)
+        
+        # Create a file path within the directory
+        file_path = os.path.join(path, "")
+        logging.info(f"Starting to write into Delta Parquet: {file_path}")
+        logging.info(datetime.now())
+        # Check if the table exists and handle mode appropriately
+        if os.path.exists(file_path):
+            if mode == "overwrite":
+                logging.info(f"Overwriting the existing Delta Lake table.")
+                # data.write_delta(file_path,mode="overwrite")
+                data.write_delta(target=path, delta_write_options={"year", "month"}, mode="append")
+                logging.info(f"Data successfully written to {file_path} in {mode} mode.")
+            elif mode == "append":
+                logging.info(f"Appending to the existing Delta Lake table.")
+                # data.write_delta(file_path,mode="append")
+                data.write_delta(target=path, delta_write_options={"year", "month"}, mode="append")
+                return
+            else:
+                raise ValueError("Invalid mode: Choose either 'overwrite' or 'append'.")
         else:
-            raise ValueError("Invalid mode: Choose either 'overwrite' or 'append'.")
-    else:
-        logging.info(f"Creating a new Delta Lake table.")
+            logging.info(f"Creating a new Delta Lake table.")
+    except Exception as e:
+        logging.error(f"Errored out in save_to_delta_table function: {e}")
+        raise e
+    
         
 # Upload Delta Table to S3
 def upload_delta_to_s3(delta_path, bucket, key):

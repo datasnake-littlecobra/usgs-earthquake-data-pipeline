@@ -276,7 +276,7 @@ def fetch_data_by_limit_range(api_url: str, start_year: int, end_year: int, limi
                 logging.info("Going to call Cassandra Connect with:")
                 logging.info(cluster_ips)
                 logging.info(keyspace)
-                save_to_cassandra_main(cluster_ips, keyspace, table_name, z_ordered_data, batch_size, timeout)
+                # save_to_cassandra_main(cluster_ips, keyspace, table_name, z_ordered_data, batch_size, timeout)
     
             offset += limit
             logging.info(f"use limit: {limit} with updated offset: {offset}")
