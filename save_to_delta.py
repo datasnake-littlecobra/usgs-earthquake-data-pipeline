@@ -69,43 +69,44 @@ s3_client = session.client(
 )
 
 # Connect to the Cassandra cluster
-USERNAME = "cassandra"
-PASSWORD = "cassandra"
-auth_provider = PlainTextAuthProvider(USERNAME, PASSWORD)
-cluster = Cluster(
-    ["127.0.0.1"], auth_provider=auth_provider
-)  # Replace with container's IP if needed
-session = cluster.connect()
+# USERNAME = "cassandra"
+# PASSWORD = "cassandra"
+# auth_provider = PlainTextAuthProvider(USERNAME, PASSWORD)
+# cluster = Cluster(
+#     ["127.0.0.1"], auth_provider=auth_provider
+# )  # Replace with container's IP if needed
+# session = cluster.connect()
 
 
-# Use the keyspace
-session.set_keyspace("test_keyspace")
+# # Use the keyspace
+# session.set_keyspace("test_keyspace")
 
 # Function to save data to Delta Lake format
 def save_to_delta_table(data: pl.DataFrame, path: str, mode):
+    logging.info(f"inside save to delta table")
     # Ensure the path exists, or create it (you could use pathlib for this)
     os.makedirs(path, exist_ok=True)
     
     # Create a file path within the directory
     file_path = os.path.join(path, "")
-    print("Starting to write into Delta Parquet: ")
-    print(datetime.now())
+    logging.info(f"Starting to write into Delta Parquet: {file_path}")
+    logging.info(datetime.now())
     # Check if the table exists and handle mode appropriately
     if os.path.exists(file_path):
         if mode == "overwrite":
-            print("Overwriting the existing Delta Lake table.")
+            logging.info(f"Overwriting the existing Delta Lake table.")
             # data.write_delta(file_path,mode="overwrite")
             data.write_delta(target=path, delta_write_options={"year", "month"}, mode="append")
-            print(f"Data successfully written to {file_path} in {mode} mode.")
+            logging.info(f"Data successfully written to {file_path} in {mode} mode.")
         elif mode == "append":
-            print("Appending to the existing Delta Lake table.")
+            logging.info(f"Appending to the existing Delta Lake table.")
             # data.write_delta(file_path,mode="append")
             data.write_delta(target=path, delta_write_options={"year", "month"}, mode="append")
             return
         else:
             raise ValueError("Invalid mode: Choose either 'overwrite' or 'append'.")
     else:
-        print("Creating a new Delta Lake table.")
+        logging.info(f"Creating a new Delta Lake table.")
         
 # Upload Delta Table to S3
 def upload_delta_to_s3(delta_path, bucket, key):
