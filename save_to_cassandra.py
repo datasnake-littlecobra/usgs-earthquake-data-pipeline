@@ -16,7 +16,7 @@ def save_to_cassandra_main(
     logging.info(keyspace)
     session = connect_cassandra(cluster_ips.split(","), keyspace)
     # batch_insert_cassandra(session, table_name, dataframe, batch_size, timeout)
-    batch_insert_cassandra_async(session,table_name,dataframe,concurrency=10)
+    batch_insert_cassandra_async(session, table_name, dataframe, concurrency=10)
 
 
 def convert_to_geojson(row):
@@ -65,7 +65,7 @@ def connect_cassandra(cluster_ips, keyspace):
 #     """
 #     prepared = session.prepare(insert_query)
 #     # batch = session.new_batch_statement()
-    
+
 #     # https://docs.datastax.com/en/developer/python-driver/3.29/api/cassandra/query/index.html#cassandra.query.BatchStatement
 #     batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
 
@@ -118,6 +118,7 @@ def connect_cassandra(cluster_ips, keyspace):
 #     if batch:
 #         session.execute(batch)
 #         print("Cassandra: Inserted remaining rows.")
+
 
 def batch_insert_cassandra_async(session, table_name, dataframe, concurrency=10):
     try:
@@ -175,7 +176,9 @@ def batch_insert_cassandra_async(session, table_name, dataframe, concurrency=10)
         ]
 
         # results = execute_concurrent(session, [(prepared, row) for row in args], concurrency=concurrency)
-        results = execute_concurrent_with_args(session, prepared, args, concurrency=concurrency)
+        results = execute_concurrent_with_args(
+            session, prepared, args, concurrency=concurrency
+        )
 
         # Log any errors
         for success, result in results:
@@ -187,6 +190,7 @@ def batch_insert_cassandra_async(session, table_name, dataframe, concurrency=10)
     except Exception as e:
         logging.error(f"Errored out writing to cassandra: {e}")
         raise
+
 
 # def batch_insert_geojson(session, table_name, dataframe, batch_size=100, timeout=2):
 #     """Insert GeoJSON data into Cassandra in batches."""
