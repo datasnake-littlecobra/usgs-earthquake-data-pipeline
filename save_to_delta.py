@@ -2,7 +2,7 @@
 import os
 from datetime import datetime
 import polars as pl
-# from deltalake import DeltaTable, write_deltalake, 
+from deltalake import DeltaTable, write_deltalake
 import boto3
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
@@ -25,16 +25,18 @@ client = hvac.Client(url="http://127.0.0.1:8200")
 datasnake_test_role_id = os.environ["DATASNAKE_TEST_ROLE_ID"]
 datasnake_test_secret_id = os.environ["DATASNAKE_TEST_SECRET_ID"]
 
-response = client.auth.approle.login(role_id=datasnake_test_role_id, secret_id=datasnake_test_secret_id)
+response = client.auth.approle.login(
+    role_id=datasnake_test_role_id, secret_id=datasnake_test_secret_id
+)
 client.token = response["auth"]["client_token"]
 # print(client.token)
 # print(response)
 
 
 # Access the secret
-secret_path_v1 = "secret/s3keys"  
+secret_path_v1 = "secret/s3keys"
 # For KV version 2, use 'data/' in the path
-secret_path_v2 = "secret/data/s3keys"  
+secret_path_v2 = "secret/data/s3keys"
 # using this path
 secret_path = "s3keys"
 
@@ -43,7 +45,9 @@ secret_path = "s3keys"
 # vault_response = client.read(secret_path_v1)
 
 # using v1 kv with default path SET TO = "secret" by VAULT
-secret_response = client.secrets.kv.v1.read_secret(path=secret_path, mount_point="secret")
+secret_response = client.secrets.kv.v1.read_secret(
+    path=secret_path, mount_point="secret"
+)
 
 # Print the secret values
 # access_key = vault_response["data"]["data"]["aws_access_key_id"]
@@ -81,13 +85,14 @@ s3_client = session.client(
 # # Use the keyspace
 # session.set_keyspace("test_keyspace")
 
+
 # Function to save data to Delta Lake format
 def save_to_delta_table(data: pl.DataFrame, path: str, mode):
     try:
         logging.info(f"inside save to delta table")
         # Ensure the path exists, or create it (you could use pathlib for this)
         os.makedirs(path, exist_ok=True)
-        
+
         # Create a file path within the directory
         file_path = os.path.join(path, "")
         logging.info(f"Starting to write into Delta Parquet: {file_path}")
@@ -97,12 +102,25 @@ def save_to_delta_table(data: pl.DataFrame, path: str, mode):
             if mode == "overwrite":
                 logging.info(f"Overwriting the existing Delta Lake table.")
                 # data.write_delta(file_path,mode="overwrite")
-                data.write_delta(target=path, delta_write_options={"partitionKeys": ["year", "month"]}, mode="append")
-                logging.info(f"Data successfully written to {file_path} in {mode} mode.")
+                # data.write_delta(target=path, delta_write_options={"year", "month"}, mode="append")
+                write_deltalake(
+                    table_or_uri=path,
+                    data=data.to_arrow(),  # Convert Polars DataFrame to Arrow Table
+                    mode="append",  # Write mode: "append", "overwrite", etc.
+                    partition_by=["year", "month"],  # Specify partition keys
+                )
+                logging.info(
+                    f"Data successfully written to {file_path} in {mode} mode."
+                )
             elif mode == "append":
                 logging.info(f"Appending to the existing Delta Lake table.")
                 # data.write_delta(file_path,mode="append")
-                data.write_delta(target=path, delta_write_options={"partitionKeys": ["year", "month"]}, mode="append")
+                write_deltalake(
+                    table_or_uri=path,
+                    data=data.to_arrow(),  # Convert Polars DataFrame to Arrow Table
+                    mode="append",  # Write mode: "append", "overwrite", etc.
+                    partition_by=["year", "month"],  # Specify partition keys
+                )
                 return
             else:
                 raise ValueError("Invalid mode: Choose either 'overwrite' or 'append'.")
@@ -111,8 +129,8 @@ def save_to_delta_table(data: pl.DataFrame, path: str, mode):
     except Exception as e:
         logging.error(f"Errored out in save_to_delta_table function: {e}")
         raise e
-    
-        
+
+
 # Upload Delta Table to S3
 def upload_delta_to_s3(delta_path, bucket, key):
     try:
