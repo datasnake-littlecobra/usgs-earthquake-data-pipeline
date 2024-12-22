@@ -305,14 +305,19 @@ def fetch_data_by_limit_range(
                 logging.info("Saving the dataframe to local delta lake...")
                 # need research on appending vs overwrite
                 # z order and other ways to make it efficient
-                save_to_delta_table(z_ordered_data, delta_dir, mode="overwrite")
-                logging.info("Uploading the delta lake to Object Storage...")
-
+                # works
+                # save_to_delta_table(z_ordered_data, delta_dir, mode="overwrite")
+                
+                # logging.info("Uploading the delta lake to Object Storage...")
                 # upload_delta_to_s3(delta_dir, bucket_name, delta_s3_key)
-                logging.info("Finished with Files...")
-                logging.info("Going to call Cassandra Connect with:")
+                # logging.info("Finished with Files...")
+                
+                logging.info("Going to call Cassandra Connect for {start_time_iso} to {end_time_iso} at offset {offset}")
                 logging.info(cluster_ips)
                 logging.info(keyspace)
+                # Log the start time
+                start_time = datetime.now(timezone.utc)
+                logging.info(f"Start Time: {start_time.strftime('%Y-%m-%d %H:%M:%S %Z')}")
                 save_to_cassandra_main(
                     cluster_ips,
                     keyspace,
@@ -321,6 +326,9 @@ def fetch_data_by_limit_range(
                     batch_size,
                     timeout,
                 )
+                # Log the end time
+                end_time = datetime.now(timezone.utc)
+                logging.info(f"End Time: {end_time.strftime('%Y-%m-%d %H:%M:%S %Z')}")
 
             offset += limit
             logging.info(f"use limit: {limit} with updated offset: {offset}")
@@ -533,7 +541,7 @@ def main():
     data = fetch_data_by_limit_range(
         API_URL,
         start_year=2010,
-        end_year=2010,
+        end_year=2011,
         limit=10000,
         output_dir=args.output_dir,
         cluster_ips=args.cluster_ips,
