@@ -120,7 +120,7 @@ def connect_cassandra(cluster_ips, keyspace):
 #         print("Cassandra: Inserted remaining rows.")
 
 
-def batch_insert_cassandra_async(session, table_name, dataframe, concurrency=10):
+def batch_insert_cassandra_async(session, table_name, dataframe, concurrency=20):
     try:
         """Insert data into Cassandra asynchronously."""
         # Process in chunks of 10,000 records
@@ -128,7 +128,7 @@ def batch_insert_cassandra_async(session, table_name, dataframe, concurrency=10)
         # for i in range(0, len(dataframe), chunk_size):
         #     chunk = dataframe[i:i + chunk_size]
         #     async_insert_cassandra(session, table_name, chunk, concurrency=20)
-        logging.info(f"Starting to write into cassandra: {table_name}")
+        # logging.info(f"Starting to write into cassandra: {table_name}")
         insert_query = f"""
         INSERT INTO {table_name} (
             id, month, year, magnitude, latitude, longitude, depth, eventtime, updated, place, url, detail,

@@ -6,13 +6,10 @@ import json
 
 # import datetime
 from datetime import datetime, timezone, timedelta
-from dateutil.relativedelta import relativedelta
+# from dateutil.relativedelta import relativedelta
 import os
 import logging
-from save_to_delta import save_to_delta_table
-from save_to_delta import upload_delta_to_s3
-from save_to_cassandra import save_to_cassandra_main
-from usgs_tsunami_count_fact_silver import convert_save_to_silver_delta_lake
+from save_to_delta_dev import save_to_delta_table
 
 # Configure logging
 logging.basicConfig(
@@ -33,13 +30,13 @@ logging.basicConfig(
 # logging.waring("This will also write in basic.log")
 # logging.debug("This will not write in basic.log")
 
-output_dir = "usgs-delta-lake-directory"
-delta_dir_raw = os.path.join(output_dir, "usgs-delta-lake-raw")
+output_dir = "output_directory"
+delta_dir_raw = os.path.join(output_dir, "usgs-delta-data-raw")
 # delta_table_path = "delta-lake/usgs-delta-data"
 
-project_name = "usgs-delta-lake-bucket"
-bucket_name = "usgs-delta-lake-bucket"
-delta_s3_key = f"{project_name}/usgs-delta-lake-raw"
+project_name = "usgs"
+bucket_name = "usgs-bucket"
+delta_s3_key = f"{project_name}/usgs_delta_lake"
 
 usgs_earthquake_events_schema = {
     "id": pl.Utf8,  # Unique earthquake ID, assumed to always exist
@@ -314,29 +311,29 @@ def fetch_data_by_limit_range(
                 # need research on appending vs overwrite
                 # z order and other ways to make it efficient
                 # works
-                save_to_delta_table(z_ordered_data, delta_dir_raw, mode="overwrite")
+                save_to_delta_table(z_ordered_data, delta_dir_raw, mode="append")
                 
                 # logging.info("Uploading the delta lake to Object Storage...")
-                upload_delta_to_s3(delta_dir_raw, bucket_name, delta_s3_key)
+                # upload_delta_to_s3(delta_dir, bucket_name, delta_s3_key)
                 # logging.info("Finished with Files...")
                 
                 # logging.info("Going to call Cassandra Connect for {start_time_iso} to {end_time_iso} at offset {offset}")
                 # logging.info(cluster_ips)
                 # logging.info(keyspace)
                 # Log the start time
-                start_time = datetime.now(timezone.utc)
-                logging.info(f"Start Time: {start_time.strftime('%Y-%m-%d %H:%M:%S %Z')}")
-                save_to_cassandra_main(
-                    cluster_ips,
-                    keyspace,
-                    table_name,
-                    z_ordered_data,
-                    batch_size,
-                    timeout,
-                )
+                # start_time = datetime.now(timezone.utc)
+                # logging.info(f"Start Time: {start_time.strftime('%Y-%m-%d %H:%M:%S %Z')}")
+                # save_to_cassandra_main(
+                #     cluster_ips,
+                #     keyspace,
+                #     table_name,
+                #     z_ordered_data,
+                #     batch_size,
+                #     timeout,
+                # )
                 # Log the end time
-                end_time = datetime.now(timezone.utc)
-                logging.info(f"End Time: {end_time.strftime('%Y-%m-%d %H:%M:%S %Z')}")
+                # end_time = datetime.now(timezone.utc)
+                # logging.info(f"End Time: {end_time.strftime('%Y-%m-%d %H:%M:%S %Z')}")
 
             offset += limit
             # logging.info(f"use limit: {limit} with updated offset: {offset}")
@@ -551,8 +548,8 @@ def ETLIngestion() -> bool:
     # data = fetch_data_by_year_range(API_URL, start_year=2010, end_year=2010, output_dir= args.output_dir, cluster_ips=args.cluster_ips, keyspace=args.keyspace, table_name=args.table_name, batch_size=args.batch_size, timeout=args.timeout)
     data = fetch_data_by_limit_range(
         API_URL,
-        start_year=2010,
-        end_year=2023,
+        start_year=2015,
+        end_year=2015,
         limit=10000,
         output_dir=args.output_dir,
         cluster_ips=args.cluster_ips,
@@ -566,14 +563,9 @@ def ETLIngestion() -> bool:
 
 def ETLSilverLayer():
     logging.info(f"inside ETL Silver Layer function now!")
-    silver_success = convert_save_to_silver_delta_lake()
-    logging.info(f"back from etl silver layer")
-    
 
 if __name__ == "__main__":
     ETLIngestion()
     if ETLIngestion:
         ETLSilverLayer()
-    
-    logging.info(f"Done with Data Ingestion/Silver data processing and Main function!")
     

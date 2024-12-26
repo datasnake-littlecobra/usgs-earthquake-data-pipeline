@@ -192,3 +192,5 @@ delta-lake/*
 pipeline.log
 
 output-files
+
+output_directory
