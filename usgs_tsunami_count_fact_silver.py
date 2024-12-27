@@ -30,8 +30,16 @@ def convert_save_to_silver_delta_lake():
     t1 = datetime.now()
     duckdb.sql(
         """
+        SELECT COUNT(*)
+        FROM delta_scan('usgs-delta-lake-directory/usgs-delta-lake-raw')
+        where year=2010
+        """
+    ).show()
+    
+    duckdb.sql(
+        """
         SELECT COUNT(*), year AS tsunami_yearly_count
-        FROM delta_scan('output_directory/usgs-delta-data-raw')
+        FROM delta_scan('usgs-delta-lake-directory/usgs-delta-lake-raw')
         group by year
         """
     ).show()
@@ -39,7 +47,7 @@ def convert_save_to_silver_delta_lake():
     duckdb.sql(
         """
         SELECT year, COUNT(*) AS tsunami_yearly_count
-        FROM delta_scan('output_directory/usgs-delta-data-raw')
+        FROM delta_scan('usgs-delta-lake-directory/usgs-delta-lake-raw')
         WHERE tsunami = 1
         GROUP BY year
         ORDER BY year
@@ -51,7 +59,7 @@ def convert_save_to_silver_delta_lake():
         data=duckdb.sql(
             """
             SELECT year, COUNT(*) AS tsunami_yearly_count
-            FROM delta_scan('output_directory/usgs-delta-data-raw')
+            FROM delta_scan('usgs-delta-lake-directory/usgs-delta-lake-raw')
             WHERE tsunami = 1
             GROUP BY year
             ORDER BY year
@@ -66,7 +74,7 @@ def convert_save_to_silver_delta_lake():
     duckdb.sql(
         """
         SELECT *
-        FROM delta_scan('output_directory/usgs-delta-data-silver/fact_tsunami_yearly')
+        FROM delta_scan('usgs-delta-lake-directory/usgs-delta-lake-silver/fact_tsunami_yearly')
         order by year
         """
     ).show()
@@ -89,7 +97,7 @@ def convert_save_to_silver_delta_lake():
     # fact_tsunami_yearly = con.sql(
     #     """
     #     SELECT year, COUNT(*) AS tsunami_count
-    #     FROM usgs-delta-data-raw
+    #     FROM usgs-delta-lake-raw
     #     WHERE tsunami = 1
     #     GROUP BY year
     #     ORDER BY year
@@ -108,7 +116,7 @@ def convert_save_to_silver_delta_lake():
     duckdb.sql(
         """
         SELECT year, month, COUNT(*) as tsunami_monthly_count
-        FROM delta_scan('output_directory/usgs-delta-data-raw')
+        FROM delta_scan('usgs-delta-lake-directory/usgs-delta-lake-raw')
         WHERE tsunami = 1
         group by year, month
         order by year, month
@@ -121,7 +129,7 @@ def convert_save_to_silver_delta_lake():
         data=duckdb.sql(
             """
         SELECT year, month, COUNT(*) as tsunami_monthly_count
-        FROM delta_scan('output_directory/usgs-delta-data-raw')
+        FROM delta_scan('usgs-delta-lake-directory/usgs-delta-lake-raw')
         WHERE tsunami = 1
         group by year, month
         order by year, month
@@ -136,14 +144,13 @@ def convert_save_to_silver_delta_lake():
     duckdb.sql(
         """
         SELECT *
-        FROM delta_scan('output_directory/usgs-delta-data-silver/fact_tsunami_monthly')
+        FROM delta_scan('usgs-delta-lake-directory/usgs-delta-lake-silver/fact_tsunami_monthly')
         order by year, month
         """
     ).show()
     
-    return True
-
-
     # logging.info(
     #     f"Fact tables created at {FACT_TSUNAMI_YEARLY_PATH} and {FACT_TSUNAMI_MONTHLY_PATH}"
     # )
+    
+    return True

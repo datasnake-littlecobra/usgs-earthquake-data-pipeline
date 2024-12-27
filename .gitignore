@@ -194,3 +194,5 @@ pipeline.log
 output-files
 
 output_directory
+
+usgs-delta-lake-directory
