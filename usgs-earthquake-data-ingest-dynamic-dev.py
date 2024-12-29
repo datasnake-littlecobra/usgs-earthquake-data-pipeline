@@ -34,8 +34,8 @@ output_dir = "output_directory"
 delta_dir_raw = os.path.join(output_dir, "usgs-delta-data-raw")
 # delta_table_path = "delta-lake/usgs-delta-data"
 
-project_name = "usgs"
-bucket_name = "usgs-bucket"
+project_name = "usgs-delta-lake-bucket"
+bucket_name = "usgs-delta-lake-bucket"
 delta_s3_key = f"{project_name}/usgs_delta_lake"
 
 usgs_earthquake_events_schema = {

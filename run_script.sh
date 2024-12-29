@@ -93,15 +93,16 @@ cqlsh $CASSANDRA_HOST -u $USERNAME -p $PASSWORD -f $CQL_FILE
 
 
 # Step 3.7: S3 Bucket Creation (Dynamic)
-project_name="usgs"
-bucket_name="s3://$project_name-bucket"
+# project_name="usgs"
+bucket_name="usgs-delta-lake-bucket"
+bucket_uri="s3://$bucket_name"
 
 # Check if the bucket exists
-if ! s3cmd ls | grep -q "$bucket_name"; then
-    echo "Bucket does not exist. Creating bucket: $bucket_name"
-    s3cmd mb "$bucket_name"
+if ! s3cmd ls | grep -q "$bucket_uri"; then
+    echo "Bucket does not exist. Creating bucket: $bucket_uri"
+    s3cmd mb "$bucket_uri"
 else
-    echo "Bucket $bucket_name already exists."
+    echo "Bucket $bucket_uri already exists."
 fi
 
 # Step 3.6: Run your Python script or entry point (e.g., main.py)

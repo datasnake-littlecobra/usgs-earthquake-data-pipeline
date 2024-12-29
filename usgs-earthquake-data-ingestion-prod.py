@@ -381,10 +381,11 @@ def fetch_data_by_limit_range(
                 delta_dir_silver = os.path.join(delta_lake_output_dir, "usgs-delta-lake-silver")
                 upload_delta_to_s3(delta_dir_silver, bucket_name, delta_s3_key_silver)
                 
-                save_to_cassandra_main(
-                    cluster_ips, keyspace, table_name, dataframe, batch_size, timeout
-                )
-
+                # save_to_cassandra_main(
+                #     cluster_ips, keyspace, table_name, dataframe, batch_size, timeout
+                # )
+                
+                return True
                 offset += limit
                 if len(features) < limit:
                     break
@@ -492,7 +493,7 @@ def ETLIngestion() -> bool:
     data = fetch_data_by_year_range(
         API_URL,
         start_year=2010,
-        end_year=2015,
+        end_year=2011,
         limit=10000,
         delta_lake_output_dir=args.output_dir,
         output_files_dir=args.output_files,
