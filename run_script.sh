@@ -99,7 +99,7 @@ bucket_uri="s3://$bucket_name"
 
 # Check if the bucket exists
 if ! s3cmd ls | grep -q "$bucket_uri"; then
-    echo "Bucket does not exist. Creating bucket: $bucket_uri"
+    echo "Bucket does not exist. Creating delta lake bucket: $bucket_uri"
     s3cmd mb "$bucket_uri"
 else
     echo "Bucket $bucket_uri already exists."

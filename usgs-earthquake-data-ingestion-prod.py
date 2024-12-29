@@ -11,7 +11,7 @@ import os
 import logging
 from save_to_delta import save_to_delta_table
 from save_to_delta import upload_delta_to_s3
-from save_to_cassandra import save_to_cassandra_main
+# from save_to_cassandra import save_to_cassandra_main
 from usgs_tsunami_count_fact_silver import convert_save_to_silver_delta_lake
 
 # Configure logging
