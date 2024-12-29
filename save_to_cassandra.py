@@ -16,7 +16,7 @@ def save_to_cassandra_main(
     logging.info(keyspace)
     session = connect_cassandra(cluster_ips.split(","), keyspace)
     # batch_insert_cassandra(session, table_name, dataframe, batch_size, timeout)
-    batch_insert_cassandra_async(session, table_name, dataframe, concurrency=10)
+    # batch_insert_cassandra_async(session, table_name, dataframe, concurrency=10)
 
 
 def convert_to_geojson(row):

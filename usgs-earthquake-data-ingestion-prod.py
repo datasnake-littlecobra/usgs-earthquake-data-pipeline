@@ -39,8 +39,8 @@ logging.basicConfig(
 
 project_name = "usgs-delta-lake-bucket"
 bucket_name = "usgs-delta-lake-bucket"
-delta_s3_key_raw = f"{project_name}/usgs-delta-lake-raw"
-delta_s3_key_silver = f"{project_name}/usgs-delta-lake-silver"
+delta_s3_key_raw = f"usgs-delta-lake-raw"
+delta_s3_key_silver = f"usgs-delta-lake-silver"
 
 usgs_earthquake_events_schema = {
     "id": pl.Utf8,  # Unique earthquake ID, assumed to always exist

@@ -1,3 +1,4 @@
+import os
 import boto3
 import hvac
 import duckdb
@@ -77,7 +78,7 @@ def convert_save_to_silver_delta_lake():
     duckdb.sql(
         """
         SELECT count(*)
-        FROM delta_scan('s3://usgs-delta-lake-bucket/usgs-delta-lake-silver')
+        FROM delta_scan('s3://usgs-delta-lake-bucket/usgs-delta-lake-raw/')
         where year=2010
         """
     ).show()
