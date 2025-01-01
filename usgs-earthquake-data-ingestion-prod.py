@@ -187,20 +187,20 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
             (geom["coordinates"][1], geom["coordinates"][0]), exactly_one=True
         )
         # {'shop': 'Nob Hill Foods', 'road': 'Camellia Terrace', 'hamlet': 'Shannon', 'town': 'Los Gatos', 'county': 'Santa Clara County', 'state': 'California', 'ISO3166-2-lvl4': 'US-CA', 'postcode': '95032', 'country': 'United States', 'country_code': 'us'}
-        logging.info(f"location first: {location}")
+        # logging.info(f"location first: {location}")
         if location is None:
             region = {}
         else:
             # Extract the 'address' dictionary or use an empty dictionary if missing
             region = location.raw.get("address", {})
         
-        logging.info(f"region raw: {region}")
-        logging.info(f"region country code: {region.get("country_code", None)}")
-        logging.info(f"region country: {region.get("country")}")
-        logging.info(f"region postcode: {region.get("postcode", None)}")
-        logging.info(f"region state: {region.get("state")}")
-        logging.info(f"region county: {region.get("county", None)}")
-        logging.info(f"region town: {region.get("town")}")
+        # logging.info(f"region raw: {region}")
+        # logging.info(f"region country code: {region.get("country_code", None)}")
+        # logging.info(f"region country: {region.get("country")}")
+        # logging.info(f"region postcode: {region.get("postcode", None)}")
+        # logging.info(f"region state: {region.get("state")}")
+        # logging.info(f"region county: {region.get("county", None)}")
+        # logging.info(f"region town: {region.get("town")}")
         country_code = region.get("country_code", None)
         country = region.get("country", None)
         postcode = region.get("postcode", None)
@@ -261,7 +261,7 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
             }
         )
 
-    print("done iterating on features now")
+    # print("done iterating on features now")
     return pl.DataFrame(rows, schema=usgs_earthquake_events_schema)
 
 

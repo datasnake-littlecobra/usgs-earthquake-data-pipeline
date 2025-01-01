@@ -93,7 +93,7 @@ def save_to_delta_table(data: pl.DataFrame, path: str, mode):
 
         # Create a file path within the directory
         file_path = os.path.join(path, "")
-        logging.info(f"Starting to write into Delta Parquet: {file_path}")
+        # logging.info(f"Starting to write into Delta Parquet: {file_path}")
         # logging.info(datetime.now())
         # Check if the table exists and handle mode appropriately
         if os.path.exists(file_path):
