@@ -23,6 +23,13 @@ if ! python3 -c "import polars" &>/dev/null; then
     pip3 install polars
 fi
 
+
+# Verify geopy installation
+if ! python3 -c "import geopy" &>/dev/null; then
+    echo "geopy is not installed. Installing it explicitly..."
+    pip3 install geopy
+fi
+
 # Verify duckdb installation
 if ! python3 -c "import duckdb" &>/dev/null; then
     echo "duckdb is not installed. Installing it explicitly..."

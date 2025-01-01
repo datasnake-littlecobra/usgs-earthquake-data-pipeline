@@ -3,7 +3,7 @@ import requests
 import polars as pl
 import geojson
 import json
-
+from geopy.geocoders import Nominatim
 # import datetime
 from datetime import datetime, timezone, timedelta
 from dateutil.relativedelta import relativedelta
@@ -13,6 +13,7 @@ from save_to_delta import save_to_delta_table
 from save_to_delta import upload_delta_to_s3
 # from save_to_cassandra import save_to_cassandra_main
 from usgs_tsunami_count_fact_silver import convert_save_to_silver_delta_lake
+geolocator = Nominatim(user_agent="usgs_earthquake_regions")
 
 # Configure logging
 logging.basicConfig(
@@ -179,6 +180,11 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
         # print(month)
         year = extract_year(timestamp)
         # print(year)
+        location = geolocator.reverse((geom["coordinates"][1], geom["coordinates"][0]), exactly_one=True)
+        address = location.raw.get("address", {})
+        state = location.raw.get("state", "Unknown")
+        logging.info(f"location: {location}")
+        logging.info(f"region: {address} : {state}")
 
         rows.append(
             {
@@ -374,10 +380,10 @@ def fetch_data_by_limit_range(
                 delta_dir_raw = os.path.join(delta_lake_output_dir, "usgs-delta-lake-raw")
                 save_to_delta_table(dataframe, delta_dir_raw, mode="append")
 
-                logging.info("Uploading the raw delta lake to Object Storage...", delta_s3_key_raw)
+                logging.info(f"Uploading the raw delta lake to Object Storage...{delta_s3_key_raw}")
                 upload_delta_to_s3(delta_dir_raw, bucket_name, delta_s3_key_raw)
                 
-                logging.info("Uploading the silver delta lake to Object Storage...", delta_s3_key_silver)
+                logging.info(f"Uploading the silver delta lake to Object Storage...{delta_s3_key_silver}")
                 delta_dir_silver = os.path.join(delta_lake_output_dir, "usgs-delta-lake-silver")
                 upload_delta_to_s3(delta_dir_silver, bucket_name, delta_s3_key_silver)
                 

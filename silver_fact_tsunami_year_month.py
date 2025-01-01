@@ -29,7 +29,7 @@ t1 = datetime.now()
 duckdb.sql(
     """
     SELECT COUNT(*), year AS tsunami_yearly_count
-    FROM delta_scan('output_directory/usgs-delta-data-raw')
+    FROM delta_scan('usgs-delta-lake-directory/usgs-delta-data-raw')
     group by year
     """
 ).show()
@@ -37,7 +37,7 @@ duckdb.sql(
 duckdb.sql(
     """
     SELECT year, COUNT(*) AS tsunami_yearly_count
-    FROM delta_scan('output_directory/usgs-delta-data-raw')
+    FROM delta_scan('usgs-delta-lake-directory/usgs-delta-data-raw')
     WHERE tsunami = 1
     GROUP BY year
     ORDER BY year
@@ -49,7 +49,7 @@ write_deltalake(
     data=duckdb.sql(
         """
         SELECT year, COUNT(*) AS tsunami_yearly_count
-        FROM delta_scan('output_directory/usgs-delta-data-raw')
+        FROM delta_scan('usgs-delta-lake-directory/usgs-delta-data-raw')
         WHERE tsunami = 1
         GROUP BY year
         ORDER BY year
@@ -64,7 +64,7 @@ write_deltalake(
 duckdb.sql(
     """
     SELECT *
-    FROM delta_scan('output_directory/usgs-delta-data-silver/fact_tsunami_yearly')
+    FROM delta_scan('usgs-delta-lake-directory/usgs-delta-data-silver/fact_tsunami_yearly')
     order by year
     """
 ).show()
@@ -106,7 +106,7 @@ logging.info(f"it took {total} to run this query.")
 duckdb.sql(
     """
     SELECT COUNT(*) as tsunami_monthly_count, year, month
-    FROM delta_scan('output_directory/usgs-delta-data-raw')
+    FROM delta_scan('usgs-delta-lake-directory/usgs-delta-data-raw')
     WHERE tsunami = 1
     group by year, month
     order by year, month
@@ -119,7 +119,7 @@ write_deltalake(
     data=duckdb.sql(
         """
     SELECT COUNT(*) as tsunami_monthly_count, year, month
-    FROM delta_scan('output_directory/usgs-delta-data-raw')
+    FROM delta_scan('usgs-delta-lake-directory/usgs-delta-data-raw')
     WHERE tsunami = 1
     group by year, month
     order by year, month
@@ -134,7 +134,7 @@ write_deltalake(
 duckdb.sql(
     """
     SELECT *
-    FROM delta_scan('output_directory/usgs-delta-data-silver/fact_tsunami_monthly')
+    FROM delta_scan('usgs-delta-lake-directory/usgs-delta-data-silver/fact_tsunami_monthly')
     order by year, month
     """
 ).show()
