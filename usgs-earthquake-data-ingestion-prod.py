@@ -184,6 +184,9 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
         # {'shop': 'Nob Hill Foods', 'road': 'Camellia Terrace', 'hamlet': 'Shannon', 'town': 'Los Gatos', 'county': 'Santa Clara County', 'state': 'California', 'ISO3166-2-lvl4': 'US-CA', 'postcode': '95032', 'country': 'United States', 'country_code': 'us'}
         logging.info(f"location: {location}")
         region = location.raw.get("address", {})
+        logging.info(f"region: {region}")
+        logging.info(f"region country code: {region.get("country_code")}")
+        logging.info(f"region country: {region.get("country")}")
         country_code = region.country_code or None
         country = region.country or None
         postcode = region.postcode or None
