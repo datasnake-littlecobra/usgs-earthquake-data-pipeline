@@ -4,6 +4,7 @@ import polars as pl
 import geojson
 import json
 from geopy.geocoders import Nominatim
+
 # import datetime
 from datetime import datetime, timezone, timedelta
 from dateutil.relativedelta import relativedelta
@@ -11,8 +12,10 @@ import os
 import logging
 from save_to_delta import save_to_delta_table
 from save_to_delta import upload_delta_to_s3
+
 # from save_to_cassandra import save_to_cassandra_main
 from usgs_tsunami_count_fact_silver import convert_save_to_silver_delta_lake
+
 geolocator = Nominatim(user_agent="usgs_earthquake_regions")
 
 # Configure logging
@@ -170,7 +173,7 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
 
     # Extract relevant fields
     rows = []
-    print('going to iterate on features now')
+    print("going to iterate on features now")
     for feature in features:
         # print("iterating features array")
         props = feature["properties"]
@@ -180,21 +183,22 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
         # print(month)
         year = extract_year(timestamp)
         # print(year)
-        location = geolocator.reverse((geom["coordinates"][1], geom["coordinates"][0]), exactly_one=True)
+        location = geolocator.reverse(
+            (geom["coordinates"][1], geom["coordinates"][0]), exactly_one=True
+        )
         # {'shop': 'Nob Hill Foods', 'road': 'Camellia Terrace', 'hamlet': 'Shannon', 'town': 'Los Gatos', 'county': 'Santa Clara County', 'state': 'California', 'ISO3166-2-lvl4': 'US-CA', 'postcode': '95032', 'country': 'United States', 'country_code': 'us'}
         logging.info(f"location: {location}")
         region = location.raw.get("address", {})
         logging.info(f"region: {region}")
-        logging.info(f"region country code: {region.get("country_code")}")
+        logging.info(f"region country code: {region.get("country_code", None)}")
         logging.info(f"region country: {region.get("country")}")
-        country_code = region.country_code or None
-        country = region.country or None
-        postcode = region.postcode or None
-        state = region.state or None
-        county = region.county or None
-        town = region.town or None
-        
-        
+        country_code = region.get("country_code", None)
+        country = region.get("country", None)
+        postcode = region.get("postcode", None)
+        state = region.get("state", None)
+        county = region.get("county", None)
+        town = region.get("town", None)
+
         # logging.info(f"region: {address} : {state}")
 
         rows.append(
@@ -209,7 +213,7 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
                 "country": country,
                 "postcode": postcode,
                 "state": state,
-                "county" : county,
+                "county": county,
                 "town": town,
                 "depth": (
                     geom["coordinates"][2] if len(geom["coordinates"]) > 2 else None
@@ -248,7 +252,7 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
             }
         )
 
-    print('done iterating on features now')
+    print("done iterating on features now")
     return pl.DataFrame(rows, schema=usgs_earthquake_events_schema)
 
 
@@ -258,7 +262,7 @@ def save_to_csv(dataframe: pl.DataFrame, delta_lake_output_dir: str):
         logging.info("No data to save.")
         return
     os.makedirs(delta_lake_output_dir, exist_ok=True)
-    print('saving csv to: {delta_lake_output_dir}')
+    print("saving csv to: {delta_lake_output_dir}")
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     file_path = os.path.join(delta_lake_output_dir, f"earthquake_data_{timestamp}.csv")
     dataframe.write_csv(file_path)
@@ -388,26 +392,34 @@ def fetch_data_by_limit_range(
                         f"No more data for range {start_time_iso} to {end_time_iso} at offset {offset}."
                     )
                     break
-                
-                print('found features...', output_files_dir)
+
+                print("found features...", output_files_dir)
                 dataframe = parse_geojson_to_dataframe(data)
-                
+
                 # save_to_csv(dataframe, output_files_dir)
-                
-                delta_dir_raw = os.path.join(delta_lake_output_dir, "usgs-delta-lake-raw")
+
+                delta_dir_raw = os.path.join(
+                    delta_lake_output_dir, "usgs-delta-lake-raw"
+                )
                 save_to_delta_table(dataframe, delta_dir_raw, mode="append")
 
-                logging.info(f"Uploading the raw delta lake to Object Storage...{delta_s3_key_raw}")
+                logging.info(
+                    f"Uploading the raw delta lake to Object Storage...{delta_s3_key_raw}"
+                )
                 upload_delta_to_s3(delta_dir_raw, bucket_name, delta_s3_key_raw)
-                
-                logging.info(f"Uploading the silver delta lake to Object Storage...{delta_s3_key_silver}")
-                delta_dir_silver = os.path.join(delta_lake_output_dir, "usgs-delta-lake-silver")
+
+                logging.info(
+                    f"Uploading the silver delta lake to Object Storage...{delta_s3_key_silver}"
+                )
+                delta_dir_silver = os.path.join(
+                    delta_lake_output_dir, "usgs-delta-lake-silver"
+                )
                 upload_delta_to_s3(delta_dir_silver, bucket_name, delta_s3_key_silver)
-                
+
                 # save_to_cassandra_main(
                 #     cluster_ips, keyspace, table_name, dataframe, batch_size, timeout
                 # )
-                
+
                 return True
                 offset += limit
                 if len(features) < limit:
@@ -451,10 +463,14 @@ def ETLIngestion() -> bool:
         help="End time for the query (YYYY-MM-DD).",
     )
     parser.add_argument(
-        "--output_dir", default="usgs-delta-lake-directory", help="Directory to save the CSV files."
+        "--output_dir",
+        default="usgs-delta-lake-directory",
+        help="Directory to save the CSV files.",
     )
     parser.add_argument(
-        "--output_files", default="usgs-output-files", help="Directory to save the CSV files."
+        "--output_files",
+        default="usgs-output-files",
+        help="Directory to save the CSV files.",
     )
     parser.add_argument(
         "--cassandra", action="store_true", help="Enable Cassandra ingestion"
@@ -538,7 +554,7 @@ def ETLSilverLayer():
 
 if __name__ == "__main__":
     ETLIngestion()
-    print("---- came back from etlingestions ---- ",ETLIngestion())
+    print("---- came back from etlingestions ---- ", ETLIngestion())
     if ETLIngestion:
         ETLSilverLayer()
 
