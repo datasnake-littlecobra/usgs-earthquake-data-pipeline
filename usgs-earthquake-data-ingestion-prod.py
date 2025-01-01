@@ -182,6 +182,7 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
         # print(year)
         location = geolocator.reverse((geom["coordinates"][1], geom["coordinates"][0]), exactly_one=True)
         # {'shop': 'Nob Hill Foods', 'road': 'Camellia Terrace', 'hamlet': 'Shannon', 'town': 'Los Gatos', 'county': 'Santa Clara County', 'state': 'California', 'ISO3166-2-lvl4': 'US-CA', 'postcode': '95032', 'country': 'United States', 'country_code': 'us'}
+        logging.info(f"location: {location}")
         country_code = location.country_code or None
         country = location.country or None
         postcode = location.postcode or None
@@ -189,7 +190,7 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
         county = location.county or None
         town = location.town or None
         
-        # logging.info(f"location: {location}")
+        
         # logging.info(f"region: {address} : {state}")
 
         rows.append(
