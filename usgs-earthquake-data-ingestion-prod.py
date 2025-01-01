@@ -181,10 +181,16 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
         year = extract_year(timestamp)
         # print(year)
         location = geolocator.reverse((geom["coordinates"][1], geom["coordinates"][0]), exactly_one=True)
-        address = location.raw.get("address", {})
-        state = location.raw.get("state", "Unknown")
-        logging.info(f"location: {location}")
-        logging.info(f"region: {address} : {state}")
+        {'shop': 'Nob Hill Foods', 'road': 'Camellia Terrace', 'hamlet': 'Shannon', 'town': 'Los Gatos', 'county': 'Santa Clara County', 'state': 'California', 'ISO3166-2-lvl4': 'US-CA', 'postcode': '95032', 'country': 'United States', 'country_code': 'us'}
+        country_code = location.raw.get("country_code", {"null"})
+        country = location.raw.get("country", "null")
+        postcode = location.raw.get("postcode", "null")
+        state = location.raw.get("state", "null")
+        county = location.raw.get("county", "null")
+        town = location.raw.get("town", "null")
+        
+        # logging.info(f"location: {location}")
+        # logging.info(f"region: {address} : {state}")
 
         rows.append(
             {
@@ -194,6 +200,12 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
                 "magnitude": props.get("mag"),
                 "latitude": geom["coordinates"][1],
                 "longitude": geom["coordinates"][0],
+                "country_code": country_code,
+                "country": country,
+                "postcode": postcode,
+                "state": state,
+                "county" : county,
+                "town": town,
                 "depth": (
                     geom["coordinates"][2] if len(geom["coordinates"]) > 2 else None
                 ),
