@@ -183,16 +183,16 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
         # print(month)
         year = extract_year(timestamp)
         # print(year)
-        location = geolocator.reverse(
-            (geom["coordinates"][1], geom["coordinates"][0]), exactly_one=True
-        )
+        # location = geolocator.reverse(
+        #     (geom["coordinates"][1], geom["coordinates"][0]), exactly_one=True
+        # )
         # {'shop': 'Nob Hill Foods', 'road': 'Camellia Terrace', 'hamlet': 'Shannon', 'town': 'Los Gatos', 'county': 'Santa Clara County', 'state': 'California', 'ISO3166-2-lvl4': 'US-CA', 'postcode': '95032', 'country': 'United States', 'country_code': 'us'}
         # logging.info(f"location first: {location}")
-        if location is None:
-            region = {}
-        else:
-            # Extract the 'address' dictionary or use an empty dictionary if missing
-            region = location.raw.get("address", {})
+        # if location is None:
+        #     region = {}
+        # else:
+        #     # Extract the 'address' dictionary or use an empty dictionary if missing
+        #     region = location.raw.get("address", {})
         
         # logging.info(f"region raw: {region}")
         # logging.info(f"region country code: {region.get("country_code", None)}")
@@ -201,12 +201,12 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
         # logging.info(f"region state: {region.get("state")}")
         # logging.info(f"region county: {region.get("county", None)}")
         # logging.info(f"region town: {region.get("town")}")
-        country_code = region.get("country_code", None)
-        country = region.get("country", None)
-        postcode = region.get("postcode", None)
-        state = region.get("state", None)
-        county = region.get("county", None)
-        town = region.get("town", None)
+        # country_code = region.get("country_code", None)
+        # country = region.get("country", None)
+        # postcode = region.get("postcode", None)
+        # state = region.get("state", None)
+        # county = region.get("county", None)
+        # town = region.get("town", None)
 
         # logging.info(f"region: {address} : {state}")
 
@@ -218,12 +218,12 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
                 "magnitude": props.get("mag"),
                 "latitude": geom["coordinates"][1],
                 "longitude": geom["coordinates"][0],
-                "country_code": country_code,
-                "country": country,
-                "postcode": postcode,
-                "state": state,
-                "county": county,
-                "town": town,
+                # "country_code": country_code,
+                # "country": country,
+                # "postcode": postcode,
+                # "state": state,
+                # "county": county,
+                # "town": town,
                 "depth": (
                     geom["coordinates"][2] if len(geom["coordinates"]) > 2 else None
                 ),
