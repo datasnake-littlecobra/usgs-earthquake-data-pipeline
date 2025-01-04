@@ -41,10 +41,10 @@ logging.basicConfig(
 # delta_dir_raw = os.path.join(delta_lake_output_dir, "usgs-delta-lake-raw")
 # delta_table_path = "delta-lake/usgs-delta-data"
 
-project_name = "usgs-delta-lake-bucket"
-bucket_name = "usgs-delta-lake-bucket"
-delta_s3_key_raw = f"usgs-delta-lake-raw"
-delta_s3_key_silver = f"usgs-delta-lake-silver"
+# project_name = "usgs-delta-lake-bucket"
+# bucket_name = "usgs-delta-lake-bucket"
+# delta_s3_key_raw = f"usgs-delta-lake-raw"
+# delta_s3_key_silver = f"usgs-delta-lake-silver"
 
 usgs_earthquake_events_schema = {
     "id": pl.Utf8,  # Unique earthquake ID, assumed to always exist
@@ -413,7 +413,7 @@ def fetch_data_by_limit_range(
                 save_to_delta_table_local(dataframe, delta_dir_raw, mode="append")
 
                 logging.info(
-                    f"Uploading the raw delta lake to Object Storage...{delta_s3_key_raw}"
+                    f"Uploading the raw delta lake to Object Storage Prod..."
                 )
                 upload_raw_delta_to_s3_prod(dataframe)
 

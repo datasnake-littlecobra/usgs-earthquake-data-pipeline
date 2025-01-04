@@ -1,17 +1,23 @@
 #!/bin/bash
 # Step 3.3: Create the Anaconda environment if it doesn't exist
-if ! conda info --envs | grep -q 'datasnake-test-env'; then
-echo 'Creating Anaconda environment...'
-conda create --name datasnake-test-env python=3.8 -y
-else
-echo 'Environment already exists.'
-fi
+# if ! conda info --envs | grep -q 'datasnake-test-env'; then
+# echo 'Creating Anaconda environment...'
+# conda create --name datasnake-test-env python=3.8 -y
+# else
+# echo 'Environment already exists.'
+# fi
 
-# Step 3.4: Activate the environment
-conda init
-conda activate datasnake-test-env
+# # Step 3.4: Activate the environment
+# conda init
+# conda activate datasnake-test-env
 # conda install pip
+
+# get inside the project directory
 cd /home/dev/usgs-earthquake-data-pipeline
+# Activate venv
+python3 -m venv venv
+source venv/bin/activate
+
 # Step 3.5: Install the required dependencies (from requirements.txt)
 if [ -f "/home/dev/usgs-earthquake-data-pipeline/requirements.txt" ]; then
 pip3 install -r /home/dev/usgs-earthquake-data-pipeline/requirements.txt
