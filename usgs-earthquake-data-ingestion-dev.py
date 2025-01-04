@@ -3,16 +3,20 @@ import requests
 import polars as pl
 import geojson
 import json
+# from geopy.geocoders import Nominatim
 
 # import datetime
 from datetime import datetime, timezone, timedelta
 from dateutil.relativedelta import relativedelta
 import os
 import logging
-from save_to_delta_dev import save_to_delta_table
-# from save_to_delta import upload_delta_to_s3
+from save_to_raw_delta_dev import save_to_delta_table_local
+from save_to_raw_delta_dev import upload_raw_delta_to_s3_dev
+
 # from save_to_cassandra import save_to_cassandra_main
-from usgs_tsunami_count_fact_silver import convert_save_to_silver_delta_lake
+from usgs_fact_tsunami_count_silver_dev import convert_save_to_silver_delta_lake_local
+from usgs_fact_tsunami_count_silver_dev import convert_save_to_silver_delta_lake_s3
+# geolocator = Nominatim(user_agent="usgs_earthquake_regions")
 
 # Configure logging
 logging.basicConfig(
@@ -37,9 +41,10 @@ logging.basicConfig(
 # delta_dir_raw = os.path.join(delta_lake_output_dir, "usgs-delta-lake-raw")
 # delta_table_path = "delta-lake/usgs-delta-data"
 
-# project_name = "usgs-delta-lake-bucket"
-# bucket_name = "usgs-delta-lake-bucket"
-# delta_s3_key = f"{project_name}/usgs-delta-lake-raw"
+project_name = "usgs-delta-lake-bucket"
+bucket_name = "usgs-delta-lake-bucket"
+delta_s3_key_raw = f"usgs-delta-lake-raw"
+delta_s3_key_silver = f"usgs-delta-lake-silver"
 
 usgs_earthquake_events_schema = {
     "id": pl.Utf8,  # Unique earthquake ID, assumed to always exist
@@ -168,7 +173,7 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
 
     # Extract relevant fields
     rows = []
-    print('going to iterate on features now')
+    print("going to iterate on features now")
     for feature in features:
         # print("iterating features array")
         props = feature["properties"]
@@ -178,6 +183,32 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
         # print(month)
         year = extract_year(timestamp)
         # print(year)
+        # location = geolocator.reverse(
+        #     (geom["coordinates"][1], geom["coordinates"][0]), exactly_one=True
+        # )
+        # {'shop': 'Nob Hill Foods', 'road': 'Camellia Terrace', 'hamlet': 'Shannon', 'town': 'Los Gatos', 'county': 'Santa Clara County', 'state': 'California', 'ISO3166-2-lvl4': 'US-CA', 'postcode': '95032', 'country': 'United States', 'country_code': 'us'}
+        # logging.info(f"location first: {location}")
+        # if location is None:
+        #     region = {}
+        # else:
+        #     # Extract the 'address' dictionary or use an empty dictionary if missing
+        #     region = location.raw.get("address", {})
+        
+        # logging.info(f"region raw: {region}")
+        # logging.info(f"region country code: {region.get("country_code", None)}")
+        # logging.info(f"region country: {region.get("country")}")
+        # logging.info(f"region postcode: {region.get("postcode", None)}")
+        # logging.info(f"region state: {region.get("state")}")
+        # logging.info(f"region county: {region.get("county", None)}")
+        # logging.info(f"region town: {region.get("town")}")
+        # country_code = region.get("country_code", None)
+        # country = region.get("country", None)
+        # postcode = region.get("postcode", None)
+        # state = region.get("state", None)
+        # county = region.get("county", None)
+        # town = region.get("town", None)
+
+        # logging.info(f"region: {address} : {state}")
 
         rows.append(
             {
@@ -187,6 +218,12 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
                 "magnitude": props.get("mag"),
                 "latitude": geom["coordinates"][1],
                 "longitude": geom["coordinates"][0],
+                # "country_code": country_code,
+                # "country": country,
+                # "postcode": postcode,
+                # "state": state,
+                # "county": county,
+                # "town": town,
                 "depth": (
                     geom["coordinates"][2] if len(geom["coordinates"]) > 2 else None
                 ),
@@ -224,7 +261,7 @@ def parse_geojson_to_dataframe(data: dict) -> pl.DataFrame:
             }
         )
 
-    print('done iterating on features now')
+    # print("done iterating on features now")
     return pl.DataFrame(rows, schema=usgs_earthquake_events_schema)
 
 
@@ -234,7 +271,7 @@ def save_to_csv(dataframe: pl.DataFrame, delta_lake_output_dir: str):
         logging.info("No data to save.")
         return
     os.makedirs(delta_lake_output_dir, exist_ok=True)
-    print('saving csv to: {delta_lake_output_dir}')
+    print("saving csv to: {delta_lake_output_dir}")
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     file_path = os.path.join(delta_lake_output_dir, f"earthquake_data_{timestamp}.csv")
     dataframe.write_csv(file_path)
@@ -364,19 +401,35 @@ def fetch_data_by_limit_range(
                         f"No more data for range {start_time_iso} to {end_time_iso} at offset {offset}."
                     )
                     break
-                
-                print('found features...', output_files_dir)
+
+                # print("found features...", output_files_dir)
                 dataframe = parse_geojson_to_dataframe(data)
-                
+
                 # save_to_csv(dataframe, output_files_dir)
-                
-                delta_dir_raw = os.path.join(delta_lake_output_dir, "usgs-delta-lake-raw")
-                save_to_delta_table(dataframe, delta_dir_raw, mode="append")
+
+                delta_dir_raw = os.path.join(
+                    delta_lake_output_dir, "usgs-delta-lake-raw"
+                )
+                save_to_delta_table_local(dataframe, delta_dir_raw, mode="append")
+
+                logging.info(
+                    f"Uploading the raw delta lake to Object Storage...{delta_s3_key_raw}"
+                )
+                upload_raw_delta_to_s3_dev(dataframe, delta_dir_raw, bucket_name, delta_s3_key_raw)
+
+                # logging.info(
+                #     f"Uploading the silver delta lake to Object Storage...{delta_s3_key_silver}"
+                # )
+                # delta_dir_silver = os.path.join(
+                #     delta_lake_output_dir, "usgs-delta-lake-silver"
+                # )
+                # upload_delta_to_s3_dev(delta_dir_silver, bucket_name, delta_s3_key_silver)
 
                 # save_to_cassandra_main(
                 #     cluster_ips, keyspace, table_name, dataframe, batch_size, timeout
                 # )
 
+                # return True
                 offset += limit
                 if len(features) < limit:
                     break
@@ -419,10 +472,14 @@ def ETLIngestion() -> bool:
         help="End time for the query (YYYY-MM-DD).",
     )
     parser.add_argument(
-        "--output_dir", default="usgs-delta-lake-directory", help="Directory to save the CSV files."
+        "--output_dir",
+        default="usgs-delta-lake-directory",
+        help="Directory to save the CSV files.",
     )
     parser.add_argument(
-        "--output_files", default="usgs-output-files", help="Directory to save the CSV files."
+        "--output_files",
+        default="usgs-output-files",
+        help="Directory to save the CSV files.",
     )
     parser.add_argument(
         "--cassandra", action="store_true", help="Enable Cassandra ingestion"
@@ -483,8 +540,8 @@ def ETLIngestion() -> bool:
     # data = fetch_data_by_year_range(API_URL, start_year=2010, end_year=2010, delta_lake_output_dir= args.output_dir, cluster_ips=args.cluster_ips, keyspace=args.keyspace, table_name=args.table_name, batch_size=args.batch_size, timeout=args.timeout)
     data = fetch_data_by_year_range(
         API_URL,
-        start_year=2010,
-        end_year=2015,
+        start_year=2014,
+        end_year=2014,
         limit=10000,
         delta_lake_output_dir=args.output_dir,
         output_files_dir=args.output_files,
@@ -500,13 +557,15 @@ def ETLIngestion() -> bool:
 
 def ETLSilverLayer():
     logging.info(f"inside ETL Silver Layer function now!")
-    silver_success = convert_save_to_silver_delta_lake()
+    silver_success_local = convert_save_to_silver_delta_lake_local()
+    logging.info(f"saved Silver Delta Layer in local!")
+    silver_success_s3 = convert_save_to_silver_delta_lake_s3()
     logging.info(f"back from etl silver layer")
 
 
 if __name__ == "__main__":
     ETLIngestion()
-    print("---- came back from etlingestions ---- ",ETLIngestion())
+    # print("---- came back from etl ingestions ---- ", ETLIngestion())
     if ETLIngestion:
         ETLSilverLayer()
 

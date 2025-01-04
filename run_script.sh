@@ -101,7 +101,7 @@ cqlsh $CASSANDRA_HOST -u $USERNAME -p $PASSWORD -f $CQL_FILE
 
 # Step 3.7: S3 Bucket Creation (Dynamic)
 # project_name="usgs"
-bucket_name="usgs-delta-lake-bucket"
+bucket_name="usgs-delta-lake-bucket-prod"
 bucket_uri="s3://$bucket_name"
 
 # Check if the bucket exists
@@ -113,4 +113,4 @@ else
 fi
 
 # Step 3.6: Run your Python script or entry point (e.g., main.py)
-python3 /home/dev/usgs-earthquake-data-pipeline/usgs-earthquake-data-ingest.py
+python3 /home/dev/usgs-earthquake-data-pipeline/usgs-earthquake-data-ingestion-prod.py

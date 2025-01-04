@@ -59,17 +59,6 @@ secret_key = secret_response["data"]["aws_secret_access_key"]
 
 hostname = "sjc1.vultrobjects.com"
 
-session = boto3.session.Session()
-s3_client = session.client(
-    "s3",
-    **{
-        "region_name": hostname.split(".")[0],
-        "endpoint_url": "https://" + hostname,
-        "aws_access_key_id": access_key,
-        "aws_secret_access_key": secret_key,
-    },
-)
-
 # Connect to the Cassandra cluster
 # USERNAME = "cassandra"
 # PASSWORD = "cassandra"
@@ -83,9 +72,24 @@ s3_client = session.client(
 # # Use the keyspace
 # session.set_keyspace("test_keyspace")
 
+usgs_delta_s3_bucket_raw_prod = "usgs-delta-lake-bucket-prod"
+usgs_delta_s3_key_raw_prod = "usgs-delta-lake-raw"
+usgs_fact_tsunami_yearly_s3_uri = (
+    f"s3://{usgs_delta_s3_bucket_raw_prod}/{usgs_delta_s3_key_raw_prod}"
+)
+
+
+storage_options = {
+    "AWS_ACCESS_KEY_ID": access_key,
+    "AWS_SECRET_ACCESS_KEY": secret_key,
+    "AWS_ENDPOINT": f"https://{hostname}",
+    "AWS_REGION": "us-east-1",
+    "AWS_S3_ADDRESSING_STYLE": "path",
+    "AWS_S3_ALLOW_UNSAFE_RENAME": "true",
+}
 
 # Function to save data to Delta Lake format
-def save_to_delta_table(data: pl.DataFrame, path: str, mode):
+def save_to_delta_table_local(data: pl.DataFrame, path: str, mode):
     try:
         # logging.info(f"inside save to delta table")
         # Ensure the path exists, or create it (you could use pathlib for this)
@@ -98,7 +102,7 @@ def save_to_delta_table(data: pl.DataFrame, path: str, mode):
         # Check if the table exists and handle mode appropriately
         if os.path.exists(file_path):
             if mode == "overwrite":
-                logging.info(f"Overwriting the existing Delta Lake table.")
+                # logging.info(f"Overwriting the existing Delta Lake table.")
                 # data.write_delta(file_path,mode="overwrite")
                 # data.write_delta(target=path, delta_write_options={"year", "month"}, mode="append")
                 write_deltalake(
@@ -107,11 +111,11 @@ def save_to_delta_table(data: pl.DataFrame, path: str, mode):
                     mode="overwrite",  # Write mode: "append", "overwrite", etc.
                     partition_by=["year", "month"],  # Specify partition keys
                 )
-                logging.info(
-                    f"Data successfully written to {file_path} in {mode} mode."
-                )
+                # logging.info(
+                #     f"Data successfully written to {file_path} in {mode} mode."
+                # )
             elif mode == "append":
-                logging.info(f"Appending to the existing Delta Lake table.")
+                # logging.info(f"Appending to the existing Delta Lake table.")
                 # data.write_delta(file_path,mode="append")
                 write_deltalake(
                     table_or_uri=path,
@@ -127,17 +131,31 @@ def save_to_delta_table(data: pl.DataFrame, path: str, mode):
     except Exception as e:
         logging.error(f"Errored out in save_to_delta_table function: {e}")
         raise e
+    
+
+# Upload Delta Table to S3
+def upload_raw_delta_to_s3_prod(dataframe: pl.DataFrame):
+    try:
+        write_deltalake(
+            table_or_uri=usgs_fact_tsunami_yearly_s3_uri,
+            storage_options=storage_options,
+            data=dataframe.to_arrow(),  # Convert Polars DataFrame to Arrow Table
+            mode="overwrite",  # Write mode: "append", "overwrite", etc.
+            partition_by=["year", "month"],  # Specify partition keys
+        )
+    except Exception as e:
+        logging.error(f"Error uploading Delta table to S3: {e}")
 
 
 # Upload Delta Table to S3
-def upload_delta_to_s3(delta_path, bucket, key):
-    try:
-        # Upload all files in the Delta table directory to S3
-        for root, dirs, files in os.walk(delta_path):
-            for file in files:
-                local_file = os.path.join(root, file)
-                s3_key = os.path.join(key, os.path.relpath(local_file, delta_path))
-                s3_client.upload_file(local_file, bucket, s3_key)
-                logging.info(f"Uploaded {local_file} to S3 at {s3_key}")
-    except Exception as e:
-        logging.error(f"Error uploading Delta table to S3: {e}")
+# def upload_delta_to_s3(delta_path, bucket, key):
+#     try:
+#         # Upload all files in the Delta table directory to S3
+#         for root, dirs, files in os.walk(delta_path):
+#             for file in files:
+#                 local_file = os.path.join(root, file)
+#                 s3_key = os.path.join(key, os.path.relpath(local_file, delta_path))
+#                 s3_client.upload_file(local_file, bucket, s3_key)
+#                 # logging.info(f"Uploaded {local_file} to S3 at {s3_key}")
+#     except Exception as e:
+#         logging.error(f"Error uploading Delta table to S3: {e}")

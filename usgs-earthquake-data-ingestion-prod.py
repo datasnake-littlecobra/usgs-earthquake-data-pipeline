@@ -3,20 +3,20 @@ import requests
 import polars as pl
 import geojson
 import json
-from geopy.geocoders import Nominatim
+# from geopy.geocoders import Nominatim
 
 # import datetime
 from datetime import datetime, timezone, timedelta
 from dateutil.relativedelta import relativedelta
 import os
 import logging
-from save_to_delta import save_to_delta_table
-from save_to_delta import upload_delta_to_s3
+from save_to_raw_delta_prod import save_to_delta_table_local
+from save_to_raw_delta_prod import upload_raw_delta_to_s3_prod
 
 # from save_to_cassandra import save_to_cassandra_main
-from usgs_tsunami_count_fact_silver import convert_save_to_silver_delta_lake
-
-geolocator = Nominatim(user_agent="usgs_earthquake_regions")
+from usgs_fact_tsunami_count_silver_dev import convert_save_to_silver_delta_lake_local
+from usgs_fact_tsunami_count_silver_dev import convert_save_to_silver_delta_lake_s3
+# geolocator = Nominatim(user_agent="usgs_earthquake_regions")
 
 # Configure logging
 logging.basicConfig(
@@ -402,7 +402,7 @@ def fetch_data_by_limit_range(
                     )
                     break
 
-                print("found features...", output_files_dir)
+                # print("found features...", output_files_dir)
                 dataframe = parse_geojson_to_dataframe(data)
 
                 # save_to_csv(dataframe, output_files_dir)
@@ -410,26 +410,26 @@ def fetch_data_by_limit_range(
                 delta_dir_raw = os.path.join(
                     delta_lake_output_dir, "usgs-delta-lake-raw"
                 )
-                save_to_delta_table(dataframe, delta_dir_raw, mode="append")
+                save_to_delta_table_local(dataframe, delta_dir_raw, mode="append")
 
                 logging.info(
                     f"Uploading the raw delta lake to Object Storage...{delta_s3_key_raw}"
                 )
-                upload_delta_to_s3(delta_dir_raw, bucket_name, delta_s3_key_raw)
+                upload_raw_delta_to_s3_prod(dataframe)
 
-                logging.info(
-                    f"Uploading the silver delta lake to Object Storage...{delta_s3_key_silver}"
-                )
-                delta_dir_silver = os.path.join(
-                    delta_lake_output_dir, "usgs-delta-lake-silver"
-                )
-                upload_delta_to_s3(delta_dir_silver, bucket_name, delta_s3_key_silver)
+                # logging.info(
+                #     f"Uploading the silver delta lake to Object Storage...{delta_s3_key_silver}"
+                # )
+                # delta_dir_silver = os.path.join(
+                #     delta_lake_output_dir, "usgs-delta-lake-silver"
+                # )
+                # upload_delta_to_s3_dev(delta_dir_silver, bucket_name, delta_s3_key_silver)
 
                 # save_to_cassandra_main(
                 #     cluster_ips, keyspace, table_name, dataframe, batch_size, timeout
                 # )
 
-                return True
+                # return True
                 offset += limit
                 if len(features) < limit:
                     break
@@ -540,9 +540,9 @@ def ETLIngestion() -> bool:
     # data = fetch_data_by_year_range(API_URL, start_year=2010, end_year=2010, delta_lake_output_dir= args.output_dir, cluster_ips=args.cluster_ips, keyspace=args.keyspace, table_name=args.table_name, batch_size=args.batch_size, timeout=args.timeout)
     data = fetch_data_by_year_range(
         API_URL,
-        start_year=2010,
-        end_year=2011,
-        limit=10000,
+        start_year=2012,
+        end_year=2014,
+        limit=15000,
         delta_lake_output_dir=args.output_dir,
         output_files_dir=args.output_files,
         cluster_ips=args.cluster_ips,
@@ -557,13 +557,15 @@ def ETLIngestion() -> bool:
 
 def ETLSilverLayer():
     logging.info(f"inside ETL Silver Layer function now!")
-    silver_success = convert_save_to_silver_delta_lake()
+    silver_success_local = convert_save_to_silver_delta_lake_local()
+    logging.info(f"saved Silver Delta Layer in local!")
+    silver_success_s3 = convert_save_to_silver_delta_lake_s3()
     logging.info(f"back from etl silver layer")
 
 
 if __name__ == "__main__":
     ETLIngestion()
-    print("---- came back from etlingestions ---- ", ETLIngestion())
+    # print("---- came back from etl ingestions ---- ", ETLIngestion())
     if ETLIngestion:
         ETLSilverLayer()
 
