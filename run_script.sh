@@ -12,6 +12,23 @@
 # conda activate datasnake-test-env
 # conda install pip
 
+# Define project directory and venv location
+PROJECT_DIR="/home/dev/usgs-earthquake-data-pipeline"
+VENV_DIR="$PROJECT_DIR/venv"
+
+# Create a virtual environment if it doesn't exist
+if [ ! -d "$VENV_DIR" ]; then
+    echo "Creating virtual environment..."
+    python3 -m venv "$VENV_DIR"
+fi
+
+# Activate the virtual environment
+source "$VENV_DIR/bin/activate"
+
+# Upgrade pip
+echo "Upgrading pip..."
+pip3 install --upgrade pip
+
 # get inside the project directory
 cd /home/dev/usgs-earthquake-data-pipeline
 # Activate venv
