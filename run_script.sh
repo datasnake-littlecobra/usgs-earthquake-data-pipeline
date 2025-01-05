@@ -144,6 +144,6 @@ else
     echo "Bucket $bucket_uri already exists."
 fi
 
-echo "starting to run main py file!"
+echo "starting to run usgs-prod py file!"
 # Step 3.6: Run your Python script or entry point (e.g., main.py)
-$VENV_DIR/bin/python /home/dev/usgs-earthquake-data-pipeline/test_imports.py
+$VENV_DIR/bin/python /home/dev/usgs-earthquake-data-pipeline/usgs-earthquake-data-ingestion-prod.py

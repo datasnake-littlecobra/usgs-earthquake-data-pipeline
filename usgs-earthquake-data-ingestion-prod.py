@@ -18,6 +18,8 @@ from usgs_fact_tsunami_count_silver_dev import convert_save_to_silver_delta_lake
 from usgs_fact_tsunami_count_silver_dev import convert_save_to_silver_delta_lake_s3
 # geolocator = Nominatim(user_agent="usgs_earthquake_regions")
 
+print(f"inside main file")
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -564,6 +566,7 @@ def ETLSilverLayer():
 
 
 if __name__ == "__main__":
+    print(f"inside main file main function")
     ETLIngestion()
     # print("---- came back from etl ingestions ---- ", ETLIngestion())
     if ETLIngestion:
