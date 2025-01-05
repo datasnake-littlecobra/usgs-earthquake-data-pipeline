@@ -145,4 +145,4 @@ else
 fi
 
 # Step 3.6: Run your Python script or entry point (e.g., main.py)
-# python3 /home/dev/usgs-earthquake-data-pipeline/usgs-earthquake-data-ingestion-prod.py
+python3 /home/dev/usgs-earthquake-data-pipeline/usgs-earthquake-data-ingestion-prod.py
