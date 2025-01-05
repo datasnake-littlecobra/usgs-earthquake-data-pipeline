@@ -50,9 +50,9 @@ if [ -f "/home/dev/usgs-earthquake-data-pipeline/requirements.txt" ]; then
 fi
 
 # Verify Polars installation
-if ! python3 -c "import polars" &>/dev/null; then
+if ! $VENV_DIR/bin/python -c "import polars" &>/dev/null; then
     echo "Polars is not installed. Installing it explicitly..."
-    pip3 install polars
+    $VENV_DIR/bin/python -m pip install polars
 fi
 
 
@@ -63,43 +63,43 @@ fi
 # fi
 
 # Verify duckdb installation
-if ! python3 -c "import duckdb" &>/dev/null; then
+if ! $VENV_DIR/bin/python -c "import duckdb" &>/dev/null; then
     echo "duckdb is not installed. Installing it explicitly..."
-    pip3 install duckdb
+    $VENV_DIR/bin/python -m pip install duckdb
 fi
 
 # Verify relativedelta installation
-if ! python3 -c "import relativedelta" &>/dev/null; then
+if ! $VENV_DIR/bin/python -c "import relativedelta" &>/dev/null; then
     echo "relativedelta is not installed. Installing it explicitly..."
-    pip3 install relativedelta
+    $VENV_DIR/bin/python -m pip install relativedelta
 fi
 
 # Verify Polars installation
-if ! python3 -c "import cassandra-driver" &>/dev/null; then
+if ! $VENV_DIR/bin/python -c "import cassandra-driver" &>/dev/null; then
     echo "cassandra-driver is not installed. Installing it explicitly..."
-    pip3 install cassandra-driver
+    $VENV_DIR/bin/python -m pip install cassandra-driver
 fi
 
 # Verify boto3 installation
-if ! python3 -c "import boto3" &>/dev/null; then
+if ! $VENV_DIR/bin/python -c "import boto3" &>/dev/null; then
     echo "boto3 is not installed. Installing it explicitly..."
-    pip3 install boto3
+    $VENV_DIR/bin/python -m pip install boto3
 fi
 
 # Verify geojson installation
-if ! python3 -c "import geojson" &>/dev/null; then
+if ! $VENV_DIR/bin/python -c "import geojson" &>/dev/null; then
     echo "geojson is not installed. Installing it explicitly..."
-    pip3 install geojson
+    $VENV_DIR/bin/python -m pip install geojson
 fi
 
-if ! python3 -c "import cassandra-driver" &>/dev/null; then
+if ! $VENV_DIR/bin/python -c "import cassandra-driver" &>/dev/null; then
     echo "cassandra-driver is not installed. Installing it explicitly..."
-    pip3 install cassandra-driver
+    $VENV_DIR/bin/python -m pip install cassandra-driver
 fi
 
-if ! python3 -c "import hvac" &>/dev/null; then
+if ! $VENV_DIR/bin/python -c "import hvac" &>/dev/null; then
     echo "hvac is not installed. Installing it explicitly..."
-    pip3 install hvac
+    $VENV_DIR/bin/python -m pip install hvac
 fi
 
 # if ! python3 -c "import requests" &>/dev/null; then
@@ -107,19 +107,19 @@ fi
 #     pip3 install requests
 # fi
 
-if ! python3 -c "import deltalake" &>/dev/null; then
+if ! $VENV_DIR/bin/python -c "import deltalake" &>/dev/null; then
     echo "deltalake is not installed. Installing it explicitly..."
-    pip3 install deltalake
+    $VENV_DIR/bin/python -m pip install deltalake
 fi
 
-if ! python3 -c "import pyarrow" &>/dev/null; then
+if ! $VENV_DIR/bin/python -c "import pyarrow" &>/dev/null; then
     echo "pyarrow is not installed. Installing it explicitly..."
-    pip3 install pyarrow
+    $VENV_DIR/bin/python -m pip install pyarrow
 fi
 
-if ! python3 -c "import packaging" &>/dev/null; then
+if ! $VENV_DIR/bin/python -c "import packaging" &>/dev/null; then
     echo "packaging is not installed. Installing it explicitly..."
-    pip3 install packaging
+    $VENV_DIR/bin/python -m pip install packaging
 fi
 
 CASSANDRA_HOST="127.0.0.1"
