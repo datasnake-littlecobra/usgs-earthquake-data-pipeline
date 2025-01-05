@@ -1,4 +1,5 @@
 import polars
+import requests
 import logging
 
 print(f"logging testing imports")
