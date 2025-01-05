@@ -21,8 +21,8 @@ PROJECT_DIR="/home/dev/usgs-earthquake-data-pipeline"
 VENV_DIR="$PROJECT_DIR/venv"
 
 # Upgrade pip
-echo "Upgrading pip..."
-$VENV_DIR/bin/python -m pip install --upgrade pip
+# echo "Upgrading pip..."
+# $VENV_DIR/bin/python -m pip install --upgrade pip
 
 # get inside the project directory
 echo "Going inside the project dir..."
