@@ -11,7 +11,7 @@
 # conda init
 # conda activate datasnake-test-env
 # conda install pip
-
+echo "Before Using Python at: $(which python)"
 # Define Python version explicitly
 PYTHON_BIN="/usr/bin/python3.12"  # Update to the correct path for your Python version
 PIP_BIN="$PYTHON_BIN -m pip"
@@ -40,6 +40,7 @@ fi
 echo "Activating virtual environment..."
 source "$VENV_DIR/bin/activate"
 #source "$VENV_DIR/bin/activate"
+echo "After Using Python at: $(which python)"
 
 
 # Step 3.5: Install the required dependencies (from requirements.txt)
