@@ -56,10 +56,10 @@ fi
 
 
 # Verify geopy installation
-if ! python3 -c "import geopy" &>/dev/null; then
-    echo "geopy is not installed. Installing it explicitly..."
-    pip3 install geopy
-fi
+# if ! python3 -c "import geopy" &>/dev/null; then
+#     echo "geopy is not installed. Installing it explicitly..."
+#     pip3 install geopy
+# fi
 
 # Verify duckdb installation
 if ! python3 -c "import duckdb" &>/dev/null; then
@@ -101,10 +101,10 @@ if ! python3 -c "import hvac" &>/dev/null; then
     pip3 install hvac
 fi
 
-if ! python3 -c "import requests" &>/dev/null; then
-    echo "requests is not installed. Installing it explicitly..."
-    pip3 install requests
-fi
+# if ! python3 -c "import requests" &>/dev/null; then
+#     echo "requests is not installed. Installing it explicitly..."
+#     pip3 install requests
+# fi
 
 if ! python3 -c "import deltalake" &>/dev/null; then
     echo "deltalake is not installed. Installing it explicitly..."
