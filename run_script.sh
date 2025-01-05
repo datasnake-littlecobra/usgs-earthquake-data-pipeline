@@ -12,32 +12,40 @@
 # conda activate datasnake-test-env
 # conda install pip
 
+# Define Python version explicitly
+PYTHON_BIN="/usr/bin/python3.12"  # Update to the correct path for your Python version
+PIP_BIN="$PYTHON_BIN -m pip"
+
 # Define project directory and venv location
 PROJECT_DIR="/home/dev/usgs-earthquake-data-pipeline"
 VENV_DIR="$PROJECT_DIR/venv"
 
+# Upgrade pip
+echo "Upgrading pip..."
+$VENV_DIR/bin/python -m pip install --upgrade pip
+
+# get inside the project directory
+echo "Going inside the project dir..."
+cd $PROJECT_DIR
+# Activate venv
+# python3 -m venv venv
+# source venv/bin/activate
 # Create a virtual environment if it doesn't exist
 if [ ! -d "$VENV_DIR" ]; then
     echo "Creating virtual environment..."
-    python3 -m venv "$VENV_DIR"
+    $PYTHON_BIN -m venv "$VENV_DIR"
 fi
 
 # Activate the virtual environment
+echo "Activating virtual environment..."
 source "$VENV_DIR/bin/activate"
+#source "$VENV_DIR/bin/activate"
 
-# Upgrade pip
-echo "Upgrading pip..."
-pip3 install --upgrade pip
-
-# get inside the project directory
-cd /home/dev/usgs-earthquake-data-pipeline
-# Activate venv
-python3 -m venv venv
-source venv/bin/activate
 
 # Step 3.5: Install the required dependencies (from requirements.txt)
 if [ -f "/home/dev/usgs-earthquake-data-pipeline/requirements.txt" ]; then
-pip3 install -r /home/dev/usgs-earthquake-data-pipeline/requirements.txt
+    $VENV_DIR/bin/python -m pip install -r "$PROJECT_DIR/requirements.txt"
+    # pip3 install -r /home/dev/usgs-earthquake-data-pipeline/requirements.txt
 fi
 
 # Verify Polars installation
@@ -136,4 +144,4 @@ else
 fi
 
 # Step 3.6: Run your Python script or entry point (e.g., main.py)
-python3 /home/dev/usgs-earthquake-data-pipeline/usgs-earthquake-data-ingestion-prod.py
+# python3 /home/dev/usgs-earthquake-data-pipeline/usgs-earthquake-data-ingestion-prod.py
